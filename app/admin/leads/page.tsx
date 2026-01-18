@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Lead, LeadStatus, LeadSource } from '@/types/lead'
 import Pagination from '@/components/admin/Pagination'
 import BulkActionBar from '@/components/admin/BulkActionBar'
+import ExportModal from '@/components/admin/ExportModal'
 
 type SortField = 'name' | 'email' | 'status' | 'priority' | 'source' | 'created_at'
 type SortOrder = 'asc' | 'desc'
@@ -28,6 +29,7 @@ export default function AdminLeadsPage() {
     field: 'created_at',
     order: 'desc',
   })
+  const [showExportModal, setShowExportModal] = useState(false)
 
   const fetchLeads = useCallback(async () => {
     setIsLoading(true)
@@ -267,6 +269,16 @@ export default function AdminLeadsPage() {
               Clear filters
             </button>
           )}
+
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="ml-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export
+          </button>
         </div>
       </div>
 
@@ -432,6 +444,18 @@ export default function AdminLeadsPage() {
           </div>
         )}
       </div>
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        currentFilters={{
+          status: filters.status,
+          source: filters.source,
+          search: filters.search,
+        }}
+        totalCount={total}
+      />
     </div>
   )
 }
