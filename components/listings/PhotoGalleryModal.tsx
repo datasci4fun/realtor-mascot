@@ -115,7 +115,7 @@ export function PhotoGalleryModal({ property, isOpen, onClose, initialIndex = 0 
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 flex flex-col">
+    <div className="fixed inset-0 z-[60] bg-black/95 flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between p-4 text-white">
         <div className="flex items-center gap-4">

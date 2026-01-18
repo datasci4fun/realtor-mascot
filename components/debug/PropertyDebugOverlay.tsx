@@ -46,6 +46,21 @@ export function PropertyDebugOverlay({ property, isPreviewMode, imageStyle = 'mo
     }
   }, [isPreviewMode])
 
+  // Add body padding and class when preview mode banner is shown
+  useEffect(() => {
+    if (isPreviewMode) {
+      document.body.style.paddingTop = '40px'
+      document.body.classList.add('preview-mode-active')
+    } else {
+      document.body.style.paddingTop = ''
+      document.body.classList.remove('preview-mode-active')
+    }
+    return () => {
+      document.body.style.paddingTop = ''
+      document.body.classList.remove('preview-mode-active')
+    }
+  }, [isPreviewMode])
+
   // Toggle debug mode
   const toggleDebugMode = () => {
     const newValue = !isEnabled

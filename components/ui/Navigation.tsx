@@ -15,6 +15,7 @@ export function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [previewModeActive, setPreviewModeActive] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,9 +25,33 @@ export function Navigation() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Check for preview mode class on body
+  useEffect(() => {
+    const checkPreviewMode = () => {
+      setPreviewModeActive(document.body.classList.contains('preview-mode-active'))
+    }
+
+    // Check initially
+    checkPreviewMode()
+
+    // Watch for class changes on body
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          checkPreviewMode()
+        }
+      })
+    })
+
+    observer.observe(document.body, { attributes: true })
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`sticky z-40 transition-all duration-300 ${
+        previewModeActive ? 'top-10' : 'top-0'
+      } ${
         scrolled
           ? 'bg-white/95 backdrop-blur-md shadow-lg'
           : 'bg-white shadow-sm'
