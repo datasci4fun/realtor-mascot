@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getTemplateById, updateTemplate, deleteTemplate } from '@/lib/templates'
-import { verifySession } from '@/lib/auth'
+import { validateSession } from '@/lib/auth'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await verifySession(sessionToken)
+    const user = await validateSession(sessionToken)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -40,7 +40,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await verifySession(sessionToken)
+    const user = await validateSession(sessionToken)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -87,7 +87,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await verifySession(sessionToken)
+    const user = await validateSession(sessionToken)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

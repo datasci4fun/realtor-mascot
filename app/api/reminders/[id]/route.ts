@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { markReminderSent, deleteReminder } from '@/lib/reminders'
-import { verifySession } from '@/lib/auth'
+import { validateSession } from '@/lib/auth'
 import { cookies } from 'next/headers'
 
 export async function PATCH(
@@ -15,7 +15,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await verifySession(sessionToken)
+    const user = await validateSession(sessionToken)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -46,7 +46,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await verifySession(sessionToken)
+    const user = await validateSession(sessionToken)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

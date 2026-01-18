@@ -6,7 +6,7 @@ import {
   generatePipelineReport,
   ReportFilters,
 } from '@/lib/reports'
-import { verifySession } from '@/lib/auth'
+import { validateSession } from '@/lib/auth'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await verifySession(sessionToken)
+    const user = await validateSession(sessionToken)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

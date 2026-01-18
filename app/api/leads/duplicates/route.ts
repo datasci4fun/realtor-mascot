@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { findDuplicates, mergeLeads, getDuplicateCount } from '@/lib/duplicates'
-import { verifySession } from '@/lib/auth'
+import { validateSession } from '@/lib/auth'
 import { logAudit } from '@/lib/audit'
 import { cookies } from 'next/headers'
 
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await verifySession(sessionToken)
+    const user = await validateSession(sessionToken)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await verifySession(sessionToken)
+    const user = await validateSession(sessionToken)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

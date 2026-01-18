@@ -1,4 +1,4 @@
-import { pool } from './db'
+import pool from './db'
 import { Lead } from '@/types/lead'
 
 export interface DuplicateGroup {

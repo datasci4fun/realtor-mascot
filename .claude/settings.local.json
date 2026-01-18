@@ -14,7 +14,8 @@
       "Bash(git push:*)",
       "Bash(tasklist:*)",
       "Bash(taskkill:*)",
-      "Bash(cmd.exe //c \"taskkill /F /IM node.exe\")"
+      "Bash(cmd.exe //c \"taskkill /F /IM node.exe\")",
+      "Bash(find:*)"
     ]
   }
 }
