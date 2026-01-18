@@ -99,16 +99,18 @@ export function Mascot() {
 
         // Check if we've reached the target
         if (Math.abs(diff) < speed) {
-          // Arrived at destination
-          setWalkState('paused')
-          setWalkDirection(0) // Stop and face forward
-          setMood('friendly')
+          // Arrived at destination - defer state updates to avoid setState during render
+          queueMicrotask(() => {
+            setWalkState('paused')
+            setWalkDirection(0) // Stop and face forward
+          })
           return { x: targetX }
         }
 
         // Move towards target
         const direction = diff > 0 ? 1 : -1
-        setWalkDirection(direction)
+        // Defer direction update
+        queueMicrotask(() => setWalkDirection(direction))
         return { x: prev.x + direction * speed }
       })
     }, 16) // ~60fps

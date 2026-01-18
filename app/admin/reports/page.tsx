@@ -404,7 +404,7 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {report.data.agents.map((agent: any) => (
+                    {(report.data?.agents || []).map((agent: any) => (
                       <tr key={agent.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <p className="font-medium text-gray-900">{agent.name}</p>
@@ -469,7 +469,7 @@ export default function ReportsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {report.data.sources.map((src: any) => (
+                    {(report.data?.sources || []).map((src: any) => (
                       <tr key={src.source} className="hover:bg-gray-50">
                         <td className="px-6 py-4 font-medium text-gray-900">
                           {formatSourceName(src.source)}
@@ -498,7 +498,7 @@ export default function ReportsPage() {
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-6">Pipeline Overview</h2>
               <div className="space-y-4">
-                {report.data.stages.map((stage: any, index: number) => (
+                {(report.data?.stages || []).map((stage: any, index: number) => (
                   <div key={stage.status} className="relative">
                     <div className="flex items-center gap-4">
                       <div className="w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-sm font-medium">
