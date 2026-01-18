@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { VRMLoaderPlugin, VRM, VRMUtils } from '@pixiv/three-vrm'
+import { VRMLoaderPlugin, VRM, VRMUtils, VRMHumanBoneName } from '@pixiv/three-vrm'
 
 type MascotMood = 'idle' | 'friendly' | 'excited' | 'thinking' | 'happy' | 'waving' | 'walking'
 
@@ -188,7 +188,7 @@ export function VRMAvatar({ mood, onClick, vrmUrl = '/mascot/mascot.vrm', walkDi
   }
 
   // Helper to set bone rotation using raw bones
-  const setBoneRotation = useCallback((humanoid: NonNullable<VRM['humanoid']>, boneName: string, x: number, y: number, z: number) => {
+  const setBoneRotation = useCallback((humanoid: NonNullable<VRM['humanoid']>, boneName: VRMHumanBoneName, x: number, y: number, z: number) => {
     const bone = humanoid.getRawBoneNode(boneName)
     if (bone) {
       bone.rotation.set(x, y, z)

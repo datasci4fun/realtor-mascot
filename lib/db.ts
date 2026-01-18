@@ -1,12 +1,16 @@
-import { Pool, QueryResult } from 'pg'
+import { Pool, QueryResult, QueryResultRow } from 'pg'
+
+// Determine SSL mode: explicitly controlled via DATABASE_SSL env var
+// Set DATABASE_SSL=true for external production DBs, false for local/Docker
+const useSSL = process.env.DATABASE_SSL === 'true'
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/realtor_leads',
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: useSSL ? { rejectUnauthorized: false } : false,
 })
 
 // Helper for running queries
-export async function query<T = any>(text: string, params?: any[]): Promise<QueryResult<T>> {
+export async function query<T extends QueryResultRow = QueryResultRow>(text: string, params?: any[]): Promise<QueryResult<T>> {
   const start = Date.now()
   const result = await pool.query(text, params)
   const duration = Date.now() - start
@@ -45,7 +49,7 @@ export async function initializeDatabase() {
 
       -- Lead management
       status TEXT DEFAULT 'new' CHECK(status IN ('new', 'contacted', 'qualified', 'showing', 'offer', 'closed', 'lost')),
-      assigned_to TEXT,
+      assigned_to UUID,
       priority TEXT DEFAULT 'normal' CHECK(priority IN ('low', 'normal', 'high', 'urgent')),
 
       -- Metadata
@@ -69,7 +73,7 @@ export async function initializeDatabase() {
       lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
       note TEXT NOT NULL,
       note_type TEXT DEFAULT 'note' CHECK(note_type IN ('note', 'call', 'email', 'meeting', 'showing', 'system')),
-      created_by TEXT,
+      created_by UUID,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
@@ -90,6 +94,9 @@ export async function initializeDatabase() {
       password_hash TEXT NOT NULL,
       name TEXT,
       role TEXT DEFAULT 'agent' CHECK(role IN ('admin', 'agent')),
+      phone TEXT,
+      avatar_url TEXT,
+      is_active BOOLEAN DEFAULT TRUE,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       last_login TIMESTAMPTZ
     );
@@ -102,14 +109,210 @@ export async function initializeDatabase() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- User invitations
+    CREATE TABLE IF NOT EXISTS user_invitations (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      email TEXT NOT NULL,
+      token TEXT UNIQUE NOT NULL,
+      role TEXT DEFAULT 'agent',
+      invited_by UUID REFERENCES admin_users(id),
+      expires_at TIMESTAMPTZ NOT NULL,
+      accepted_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Lead assignments history
+    CREATE TABLE IF NOT EXISTS lead_assignments (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+      assigned_to UUID NOT NULL REFERENCES admin_users(id),
+      assigned_by UUID NOT NULL REFERENCES admin_users(id),
+      assigned_at TIMESTAMPTZ DEFAULT NOW(),
+      reason TEXT
+    );
+
+    -- Tasks
+    CREATE TABLE IF NOT EXISTS tasks (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title TEXT NOT NULL,
+      description TEXT,
+      lead_id UUID REFERENCES leads(id) ON DELETE SET NULL,
+      assigned_to UUID NOT NULL REFERENCES admin_users(id),
+      created_by UUID NOT NULL REFERENCES admin_users(id),
+      due_date TIMESTAMPTZ,
+      priority TEXT DEFAULT 'normal' CHECK(priority IN ('low', 'normal', 'high', 'urgent')),
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'in_progress', 'completed', 'cancelled')),
+      completed_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Daily stats for analytics
+    CREATE TABLE IF NOT EXISTS daily_stats (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      date DATE NOT NULL UNIQUE,
+      new_leads INTEGER DEFAULT 0,
+      qualified_leads INTEGER DEFAULT 0,
+      closed_leads INTEGER DEFAULT 0,
+      lost_leads INTEGER DEFAULT 0,
+      by_source JSONB,
+      by_agent JSONB,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Reminders
+    CREATE TABLE IF NOT EXISTS reminders (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES admin_users(id),
+      remind_at TIMESTAMPTZ NOT NULL,
+      message TEXT,
+      is_sent BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Email templates
+    CREATE TABLE IF NOT EXISTS email_templates (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      body TEXT NOT NULL,
+      category TEXT CHECK(category IN ('follow_up', 'showing', 'offer', 'closing', 'other')),
+      created_by UUID REFERENCES admin_users(id),
+      is_default BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Settings key-value store
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value JSONB NOT NULL,
+      updated_by UUID REFERENCES admin_users(id),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Notification preferences
+    CREATE TABLE IF NOT EXISTS notification_preferences (
+      user_id UUID PRIMARY KEY REFERENCES admin_users(id) ON DELETE CASCADE,
+      new_lead_email BOOLEAN DEFAULT TRUE,
+      new_lead_browser BOOLEAN DEFAULT TRUE,
+      task_reminder_email BOOLEAN DEFAULT TRUE,
+      lead_assigned_email BOOLEAN DEFAULT TRUE,
+      daily_digest BOOLEAN DEFAULT FALSE,
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Audit log
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID REFERENCES admin_users(id),
+      action TEXT NOT NULL,
+      entity_type TEXT NOT NULL,
+      entity_id UUID,
+      old_values JSONB,
+      new_values JSONB,
+      ip_address TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Properties table for listings
+    CREATE TABLE IF NOT EXISTS properties (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      slug TEXT UNIQUE NOT NULL,
+
+      -- Address
+      address TEXT NOT NULL,
+      city TEXT NOT NULL,
+      state TEXT NOT NULL DEFAULT 'TX',
+      zip TEXT NOT NULL,
+      county TEXT,
+
+      -- Pricing
+      list_price INTEGER NOT NULL,
+      original_price INTEGER,
+      close_price INTEGER,
+      close_date DATE,
+
+      -- Property details
+      beds INTEGER NOT NULL,
+      baths INTEGER NOT NULL,
+      half_baths INTEGER DEFAULT 0,
+      sqft INTEGER,
+      lot_size DECIMAL(10, 4),
+      lot_size_unit TEXT DEFAULT 'acres',
+      year_built INTEGER,
+      stories INTEGER DEFAULT 1,
+      property_type TEXT DEFAULT 'Single-Family',
+      property_style TEXT,
+
+      -- Garage
+      garage_spaces INTEGER DEFAULT 0,
+      garage_type TEXT,
+
+      -- HOA
+      hoa_fee DECIMAL(10, 2),
+      hoa_frequency TEXT DEFAULT 'monthly',
+
+      -- Taxes
+      tax_amount DECIMAL(10, 2),
+      tax_year INTEGER,
+      tax_rate DECIMAL(5, 4),
+
+      -- Status
+      status TEXT DEFAULT 'sold' CHECK(status IN ('active', 'pending', 'sold', 'off_market')),
+
+      -- Media
+      image_url TEXT,
+      images JSONB DEFAULT '[]',
+      virtual_tour_url TEXT,
+
+      -- Description
+      headline TEXT,
+      description TEXT,
+      features JSONB DEFAULT '[]',
+
+      -- Location
+      latitude DECIMAL(10, 8),
+      longitude DECIMAL(11, 8),
+      neighborhood TEXT,
+      subdivision TEXT,
+      school_district TEXT,
+      schools JSONB DEFAULT '{}',
+
+      -- MLS data
+      mls_number TEXT,
+      mls_board TEXT,
+      days_on_market INTEGER,
+      listing_agent TEXT,
+      listing_agent_phone TEXT,
+      listing_office TEXT,
+
+      -- Metadata
+      source TEXT DEFAULT 'manual',
+      external_id TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
     -- Create indexes for common queries
     CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);
     CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
     CREATE INDEX IF NOT EXISTS idx_leads_created ON leads(created_at);
+    CREATE INDEX IF NOT EXISTS idx_leads_assigned_to ON leads(assigned_to);
     CREATE INDEX IF NOT EXISTS idx_lead_notes_lead ON lead_notes(lead_id);
     CREATE INDEX IF NOT EXISTS idx_conversations_lead ON lead_conversations(lead_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_tasks_assigned_to ON tasks(assigned_to);
+    CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
+    CREATE INDEX IF NOT EXISTS idx_tasks_lead_id ON tasks(lead_id);
+    CREATE INDEX IF NOT EXISTS idx_reminders_pending ON reminders(remind_at) WHERE is_sent = FALSE;
+    CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_properties_slug ON properties(slug);
+    CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
+    CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
+    CREATE INDEX IF NOT EXISTS idx_properties_close_date ON properties(close_date DESC);
   `)
 
   console.log('Database schema initialized')

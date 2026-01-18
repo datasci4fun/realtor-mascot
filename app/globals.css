@@ -66,18 +66,6 @@ body {
          hover:bg-primary-200 transition-colors cursor-pointer;
 }
 
-/* Smooth page transitions */
-.page-transition-enter {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.page-transition-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms ease-out, transform 300ms ease-out;
-}
-
 /* Listing card hover effects */
 .listing-card {
   @apply transition-all duration-300;
@@ -90,4 +78,19 @@ body {
 /* Form input focus styles */
 input:focus, textarea:focus, select:focus {
   @apply outline-none ring-2 ring-primary-500 border-transparent;
+}
+
+/* Property card hover glow */
+.card-glow:hover {
+  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
+}
+
+/* Timeline connector line */
+.timeline-line {
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 50%, #3b82f6 100%);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
 }

@@ -64,8 +64,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     source: searchParams.get('source') || undefined,
     priority: searchParams.get('priority') || undefined,
     search: searchParams.get('search') || undefined,
-    limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50,
+    assignedTo: searchParams.get('assignedTo') || undefined,
+    limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 25,
     offset: searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0,
+    sortBy: searchParams.get('sortBy') || 'created_at',
+    sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
   }
 
   const { leads, total } = await getLeads(filters)

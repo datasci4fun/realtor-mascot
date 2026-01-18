@@ -96,8 +96,11 @@ export async function getLeads(filters?: {
   source?: string
   priority?: string
   search?: string
+  assignedTo?: string
   limit?: number
   offset?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }): Promise<{ leads: Lead[]; total: number }> {
   await ensureInitialized()
 
@@ -120,6 +123,11 @@ export async function getLeads(filters?: {
     params.push(filters.priority)
   }
 
+  if (filters?.assignedTo) {
+    whereClause += ` AND assigned_to = $${paramIndex++}`
+    params.push(filters.assignedTo)
+  }
+
   if (filters?.search) {
     whereClause += ` AND (name ILIKE $${paramIndex} OR email ILIKE $${paramIndex} OR phone ILIKE $${paramIndex})`
     params.push(`%${filters.search}%`)
@@ -130,8 +138,21 @@ export async function getLeads(filters?: {
   const countResult = await query(`SELECT COUNT(*) as total FROM leads ${whereClause}`, params)
   const total = parseInt(countResult.rows[0].total)
 
+  // Determine sort column and direction
+  const validSortColumns: Record<string, string> = {
+    name: 'name',
+    email: 'email',
+    status: 'status',
+    priority: 'priority',
+    source: 'source',
+    created_at: 'created_at',
+    updated_at: 'updated_at',
+  }
+  const sortColumn = validSortColumns[filters?.sortBy || 'created_at'] || 'created_at'
+  const sortOrder = filters?.sortOrder === 'asc' ? 'ASC' : 'DESC'
+
   // Get leads with pagination
-  let queryText = `SELECT * FROM leads ${whereClause} ORDER BY created_at DESC`
+  let queryText = `SELECT * FROM leads ${whereClause} ORDER BY ${sortColumn} ${sortOrder}`
 
   if (filters?.limit) {
     queryText += ` LIMIT $${paramIndex++}`
@@ -205,6 +226,64 @@ export async function deleteLead(id: string): Promise<boolean> {
 
   const result = await query('DELETE FROM leads WHERE id = $1', [id])
   return (result.rowCount ?? 0) > 0
+}
+
+/**
+ * Bulk update leads
+ */
+export async function bulkUpdateLeads(
+  leadIds: string[],
+  updates: Partial<Lead>,
+  updatedBy?: string
+): Promise<number> {
+  await ensureInitialized()
+
+  const allowedFields: Record<string, string> = {
+    status: 'status',
+    priority: 'priority',
+    assignedTo: 'assigned_to',
+  }
+
+  const setClauses: string[] = []
+  const params: any[] = []
+  let paramIndex = 1
+
+  for (const [key, value] of Object.entries(updates)) {
+    const dbField = allowedFields[key]
+    if (dbField) {
+      setClauses.push(`${dbField} = $${paramIndex++}`)
+      params.push(value)
+    }
+  }
+
+  if (setClauses.length === 0) return 0
+
+  setClauses.push('updated_at = NOW()')
+
+  // Build the IN clause for lead IDs
+  const idPlaceholders = leadIds.map((_, i) => `$${paramIndex + i}`).join(', ')
+  params.push(...leadIds)
+
+  const result = await query(
+    `UPDATE leads SET ${setClauses.join(', ')} WHERE id IN (${idPlaceholders})`,
+    params
+  )
+
+  return result.rowCount ?? 0
+}
+
+/**
+ * Bulk delete leads
+ */
+export async function bulkDeleteLeads(leadIds: string[]): Promise<number> {
+  await ensureInitialized()
+
+  if (leadIds.length === 0) return 0
+
+  const placeholders = leadIds.map((_, i) => `$${i + 1}`).join(', ')
+  const result = await query(`DELETE FROM leads WHERE id IN (${placeholders})`, leadIds)
+
+  return result.rowCount ?? 0
 }
 
 // ============================================

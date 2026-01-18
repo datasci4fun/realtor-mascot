@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Lead, ConversationMessage, LeadNote } from '@/types/lead'
+import { AdminUser } from '@/types/user'
+import SetReminderButton from '@/components/admin/SetReminderButton'
 
 export default function LeadDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [lead, setLead] = useState<Lead | null>(null)
   const [notes, setNotes] = useState<LeadNote[]>([])
   const [conversation, setConversation] = useState<ConversationMessage[]>([])
+  const [agents, setAgents] = useState<AdminUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [newNote, setNewNote] = useState('')
   const [noteType, setNoteType] = useState<'note' | 'call' | 'email' | 'meeting' | 'showing'>('note')
@@ -17,6 +20,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     fetchLead()
+    fetchAgents()
   }, [params.id])
 
   const fetchLead = async () => {
@@ -41,6 +45,18 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
       console.error('Failed to fetch lead:', error)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchAgents = async () => {
+    try {
+      const res = await fetch('/api/admin/users?isActive=true')
+      if (res.ok) {
+        const data = await res.json()
+        setAgents(data.users || [])
+      }
+    } catch (error) {
+      // Ignore - agents dropdown will just be empty
     }
   }
 
@@ -71,6 +87,22 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
       fetchLead()
     } catch (error) {
       console.error('Failed to update priority:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const updateAssignment = async (assignedTo: string) => {
+    setIsSaving(true)
+    try {
+      await fetch(`/api/leads/${params.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignedTo: assignedTo || null }),
+      })
+      fetchLead()
+    } catch (error) {
+      console.error('Failed to update assignment:', error)
     } finally {
       setIsSaving(false)
     }
@@ -130,14 +162,16 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
     )
   }
 
+  const assignedAgent = agents.find((a) => a.id === lead.assignedTo)
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-5xl">
       {/* Header */}
       <div className="mb-8">
         <Link href="/admin/leads" className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-block">
           ← Back to all leads
         </Link>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
               {lead.name || 'No name'}
@@ -145,7 +179,22 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
             <p className="text-gray-600">{lead.email}</p>
             {lead.phone && <p className="text-gray-500">{lead.phone}</p>}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Agent Assignment */}
+            <select
+              value={lead.assignedTo || ''}
+              onChange={(e) => updateAssignment(e.target.value)}
+              disabled={isSaving}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+            >
+              <option value="">Unassigned</option>
+              {agents.map((agent) => (
+                <option key={agent.id} value={agent.id}>
+                  {agent.name || agent.email}
+                </option>
+              ))}
+            </select>
+
             <select
               value={lead.priority || 'normal'}
               onChange={(e) => updatePriority(e.target.value)}
@@ -171,8 +220,19 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
               <option value="closed">Closed</option>
               <option value="lost">Lost</option>
             </select>
+            <SetReminderButton leadId={lead.id!} onSuccess={() => fetchLead()} />
           </div>
         </div>
+
+        {/* Assignment badge */}
+        {assignedAgent && (
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full text-sm">
+            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-medium">
+              {assignedAgent.name ? assignedAgent.name.charAt(0).toUpperCase() : assignedAgent.email.charAt(0).toUpperCase()}
+            </div>
+            <span>Assigned to <strong>{assignedAgent.name || assignedAgent.email}</strong></span>
+          </div>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -259,7 +319,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Add Note</h2>
             <div className="space-y-4">
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {(['note', 'call', 'email', 'meeting', 'showing'] as const).map((type) => (
                   <button
                     key={type}
