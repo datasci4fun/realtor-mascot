@@ -216,6 +216,61 @@ export async function initializeDatabase() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- Properties table for listings
+    CREATE TABLE IF NOT EXISTS properties (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      slug TEXT UNIQUE NOT NULL,
+
+      -- Address
+      address TEXT NOT NULL,
+      city TEXT NOT NULL,
+      state TEXT NOT NULL DEFAULT 'TX',
+      zip TEXT NOT NULL,
+
+      -- Pricing
+      list_price INTEGER NOT NULL,
+      close_price INTEGER,
+      close_date DATE,
+
+      -- Property details
+      beds INTEGER NOT NULL,
+      baths INTEGER NOT NULL,
+      half_baths INTEGER DEFAULT 0,
+      sqft INTEGER,
+      lot_size INTEGER,
+      year_built INTEGER,
+      property_type TEXT DEFAULT 'Single-Family',
+
+      -- Status
+      status TEXT DEFAULT 'sold' CHECK(status IN ('active', 'pending', 'sold', 'off_market')),
+
+      -- Media
+      image_url TEXT,
+      images JSONB DEFAULT '[]',
+      virtual_tour_url TEXT,
+
+      -- Description
+      headline TEXT,
+      description TEXT,
+      features JSONB DEFAULT '[]',
+
+      -- Location
+      latitude DECIMAL(10, 8),
+      longitude DECIMAL(11, 8),
+      neighborhood TEXT,
+      school_district TEXT,
+
+      -- MLS data
+      mls_number TEXT,
+      days_on_market INTEGER,
+
+      -- Metadata
+      source TEXT DEFAULT 'manual',
+      external_id TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
     -- Create indexes for common queries
     CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);
     CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
@@ -230,6 +285,10 @@ export async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_tasks_lead_id ON tasks(lead_id);
     CREATE INDEX IF NOT EXISTS idx_reminders_pending ON reminders(remind_at) WHERE is_sent = FALSE;
     CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_properties_slug ON properties(slug);
+    CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
+    CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
+    CREATE INDEX IF NOT EXISTS idx_properties_close_date ON properties(close_date DESC);
   `)
 
   console.log('Database schema initialized')

@@ -301,12 +301,20 @@ export default function HomePage() {
                   className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group card-glow"
                 >
                   <div className="aspect-[4/3] bg-gradient-to-br from-primary-50 via-primary-100 to-primary-200 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center transform group-hover:scale-110 transition-transform duration-300">
-                        <PropertyHouseIcon beds={property.beds} className="w-20 h-20 mx-auto mb-2" />
-                        <span className="text-primary-600/70 text-sm font-medium">{property.city}, TX</span>
+                    {property.imageUrl ? (
+                      <img
+                        src={property.imageUrl}
+                        alt={`${property.address}, ${property.city}`}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center transform group-hover:scale-110 transition-transform duration-300">
+                          <PropertyHouseIcon beds={property.beds} className="w-20 h-20 mx-auto mb-2" />
+                          <span className="text-primary-600/70 text-sm font-medium">{property.city}, TX</span>
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="absolute top-3 left-3 bg-green-600 text-white text-xs px-3 py-1.5 rounded-full font-semibold shadow-lg">
                       SOLD
                     </div>
