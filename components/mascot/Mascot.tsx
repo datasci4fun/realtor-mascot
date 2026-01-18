@@ -21,6 +21,7 @@ export function Mascot() {
 
   const walkIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const stateTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const positionRef = useRef({ x: 20 }) // Track position for interval calculations
 
   // Check if we should skip rendering (debug pages)
   const isDebugPage = pathname?.startsWith('/debug')
@@ -48,8 +49,8 @@ export function Mascot() {
     const newTarget = Math.random() * (maxX - minX) + minX
     setTargetX(newTarget)
     // Set initial direction based on target (will be updated during walk)
-    setWalkDirection(newTarget > position.x ? 1 : -1)
-  }, [position.x])
+    setWalkDirection(newTarget > positionRef.current.x ? 1 : -1)
+  }, [])
 
   // Walking behavior state machine
   useEffect(() => {
@@ -94,25 +95,25 @@ export function Mascot() {
 
     const speed = 2 // pixels per frame
     walkIntervalRef.current = setInterval(() => {
-      setPosition(prev => {
-        const diff = targetX - prev.x
+      const currentX = positionRef.current.x
+      const diff = targetX - currentX
 
-        // Check if we've reached the target
-        if (Math.abs(diff) < speed) {
-          // Arrived at destination - defer state updates to avoid setState during render
-          queueMicrotask(() => {
-            setWalkState('paused')
-            setWalkDirection(0) // Stop and face forward
-          })
-          return { x: targetX }
-        }
+      // Check if we've reached the target
+      if (Math.abs(diff) < speed) {
+        // Arrived at destination
+        positionRef.current = { x: targetX }
+        setPosition({ x: targetX })
+        setWalkState('paused')
+        setWalkDirection(0) // Stop and face forward
+        return
+      }
 
-        // Move towards target
-        const direction = diff > 0 ? 1 : -1
-        // Defer direction update
-        queueMicrotask(() => setWalkDirection(direction))
-        return { x: prev.x + direction * speed }
-      })
+      // Move towards target
+      const direction = diff > 0 ? 1 : -1
+      const newX = currentX + direction * speed
+      positionRef.current = { x: newX }
+      setPosition({ x: newX })
+      setWalkDirection(direction)
     }, 16) // ~60fps
 
     return () => {
@@ -120,7 +121,7 @@ export function Mascot() {
         clearInterval(walkIntervalRef.current)
       }
     }
-  }, [walkState, targetX, setMood])
+  }, [walkState, targetX])
 
   // Update mood when walk state changes
   useEffect(() => {
