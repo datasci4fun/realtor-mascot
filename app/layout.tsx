@@ -26,7 +26,7 @@ export default function RootLayout({
           {/* Navigation */}
           <Navigation />
 
-          {/* Page content - this changes between routes */}
+          {/* Page content */}
           <main className="min-h-screen">
             {children}
           </main>

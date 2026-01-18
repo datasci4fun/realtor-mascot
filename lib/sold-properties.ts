@@ -283,3 +283,13 @@ export function formatDate(dateStr: string): string {
     year: 'numeric',
   })
 }
+
+// Check if property sold over asking price
+export function isSoldOverAsking(property: SoldProperty): boolean {
+  return property.closePrice > property.listPrice
+}
+
+// Get the price difference (positive = over asking, negative = under)
+export function getPriceDifference(property: SoldProperty): number {
+  return property.closePrice - property.listPrice
+}
