@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Lead, ConversationMessage, LeadNote } from '@/types/lead'
 import { AdminUser } from '@/types/user'
+import SetReminderButton from '@/components/admin/SetReminderButton'
 
 export default function LeadDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -219,6 +220,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
               <option value="closed">Closed</option>
               <option value="lost">Lost</option>
             </select>
+            <SetReminderButton leadId={lead.id} onSuccess={() => fetchLead()} />
           </div>
         </div>
 

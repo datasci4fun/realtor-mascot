@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { VRMLoaderPlugin, VRM, VRMUtils } from '@pixiv/three-vrm'
+import { VRMLoaderPlugin, VRM, VRMUtils, VRMHumanBoneName } from '@pixiv/three-vrm'
 import { VRMAvatar } from '@/components/mascot/VRMAvatar'
 
 type MascotMood = 'idle' | 'friendly' | 'excited' | 'thinking' | 'happy' | 'waving' | 'walking'
@@ -158,7 +158,7 @@ export default function MascotDebugPage() {
 
     const humanoid = vrmRef.current.humanoid
     Object.entries(bones).forEach(([boneName, rot]) => {
-      const bone = humanoid.getRawBoneNode(boneName)
+      const bone = humanoid.getRawBoneNode(boneName as VRMHumanBoneName)
       if (bone) {
         bone.rotation.set(rot.x, rot.y, rot.z)
       }

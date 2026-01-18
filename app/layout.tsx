@@ -9,9 +9,9 @@ import { Footer } from '@/components/ui/Footer'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Sarah Johnson Realty | Find Your Dream Home',
-  description: 'Expert real estate services in the Greater Metro Area. Helping families find their perfect home for over 15 years.',
-  keywords: ['real estate', 'homes for sale', 'realtor', 'property listings'],
+  title: 'Artistic Real Estate Group | Greg Knapp - DFW Buyer Specialist',
+  description: 'The Original Buyer Broker in Texas. Greg Knapp helps buyers save time, effort, and money across the Dallas-Fort Worth metroplex.',
+  keywords: ['real estate', 'DFW homes', 'buyer agent', 'Dallas Fort Worth realtor', 'Texas real estate'],
 }
 
 export default function RootLayout({
