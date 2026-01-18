@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { Property, formatPrice, formatFullDate, getTotalBaths, getFullAddress, isSoldOverAsking, getPriceDifference } from '@/types/property'
 import { LayoutStyle } from '@/lib/mock-property'
+import { PhotoGalleryModal, ViewAllPhotosButton } from './PhotoGalleryModal'
 
 // Shared Icons
 function ArrowLeftIcon({ className }: { className?: string }) {
@@ -279,7 +281,17 @@ function PriceDisplay({ property, size = 'large' }: { property: Property; size?:
 }
 
 // Image Gallery Component
-function ImageGallery({ property, showMain = true }: { property: Property; showMain?: boolean }) {
+function ImageGallery({
+  property,
+  showMain = true,
+  onImageClick,
+  showViewAll = true
+}: {
+  property: Property
+  showMain?: boolean
+  onImageClick?: (index: number) => void
+  showViewAll?: boolean
+}) {
   const allImages = property.images.length > 0 ? property.images : (property.imageUrl ? [property.imageUrl] : [])
 
   if (allImages.length === 0) {
@@ -288,34 +300,47 @@ function ImageGallery({ property, showMain = true }: { property: Property; showM
 
   if (showMain && allImages.length === 1) {
     return (
-      <img
-        src={allImages[0]}
-        alt={getFullAddress(property)}
-        className="w-full h-64 md:h-96 object-cover rounded-xl"
-      />
+      <div className="relative">
+        <img
+          src={allImages[0]}
+          alt={getFullAddress(property)}
+          className={`w-full h-64 md:h-96 object-cover rounded-xl ${onImageClick ? 'cursor-pointer' : ''}`}
+          onClick={() => onImageClick?.(0)}
+        />
+      </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-      {showMain && (
-        <div className="col-span-2 row-span-2">
-          <img
-            src={allImages[0]}
-            alt={getFullAddress(property)}
-            className="w-full h-full object-cover rounded-xl"
-          />
-        </div>
+    <div className="relative">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        {showMain && (
+          <div className="col-span-2 row-span-2">
+            <img
+              src={allImages[0]}
+              alt={getFullAddress(property)}
+              className={`w-full h-full object-cover rounded-xl ${onImageClick ? 'cursor-pointer hover:opacity-95 transition-opacity' : ''}`}
+              onClick={() => onImageClick?.(0)}
+            />
+          </div>
+        )}
+        {allImages.slice(showMain ? 1 : 0, showMain ? 5 : 6).map((img, idx) => (
+          <div key={idx} className="aspect-[4/3]">
+            <img
+              src={img}
+              alt={`${property.address} - Image ${idx + 2}`}
+              className={`w-full h-full object-cover rounded-lg ${onImageClick ? 'cursor-pointer hover:opacity-95 transition-opacity' : ''}`}
+              onClick={() => onImageClick?.(showMain ? idx + 1 : idx)}
+            />
+          </div>
+        ))}
+      </div>
+      {showViewAll && allImages.length > 1 && onImageClick && (
+        <ViewAllPhotosButton
+          count={allImages.length}
+          onClick={() => onImageClick(0)}
+        />
       )}
-      {allImages.slice(showMain ? 1 : 0, showMain ? 5 : 6).map((img, idx) => (
-        <div key={idx} className="aspect-[4/3]">
-          <img
-            src={img}
-            alt={`${property.address} - Image ${idx + 2}`}
-            className="w-full h-full object-cover rounded-lg"
-          />
-        </div>
-      ))}
     </div>
   )
 }
@@ -329,7 +354,15 @@ interface LayoutProps {
 
 // FULL WIDTH LAYOUT - Hero spans entire viewport width
 export function FullWidthLayout({ property, children }: LayoutProps) {
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryIndex, setGalleryIndex] = useState(0)
   const isSold = property.status === 'sold'
+  const allImages = property.images.length > 0 ? property.images : (property.imageUrl ? [property.imageUrl] : [])
+
+  const openGallery = (index: number = 0) => {
+    setGalleryIndex(index)
+    setGalleryOpen(true)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -339,15 +372,16 @@ export function FullWidthLayout({ property, children }: LayoutProps) {
           <img
             src={property.imageUrl}
             alt={getFullAddress(property)}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+            onClick={() => openGallery(0)}
           />
         ) : (
           <PropertyPlaceholder beds={property.beds} className="w-full h-full" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
 
         {/* Back button */}
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-4 left-4 z-10">
           <Link
             href="/listings"
             className="inline-flex items-center bg-white/90 backdrop-blur-sm text-gray-800 px-4 py-2 rounded-full hover:bg-white transition-colors"
@@ -359,8 +393,16 @@ export function FullWidthLayout({ property, children }: LayoutProps) {
 
         <StatusBadge property={property} />
 
+        {/* View All Photos Button */}
+        {allImages.length > 0 && (
+          <ViewAllPhotosButton
+            count={allImages.length}
+            onClick={() => openGallery(0)}
+          />
+        )}
+
         {/* Overlay Content */}
-        <div className="absolute bottom-0 left-0 right-0 p-8">
+        <div className="absolute bottom-0 left-0 right-0 p-8 pointer-events-none">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
               {property.address}
@@ -395,12 +437,28 @@ export function FullWidthLayout({ property, children }: LayoutProps) {
           </div>
         </div>
       </div>
+
+      {/* Photo Gallery Modal */}
+      <PhotoGalleryModal
+        property={property}
+        isOpen={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        initialIndex={galleryIndex}
+      />
     </div>
   )
 }
 
 // GALLERY LAYOUT - Large image gallery at top
 export function GalleryLayout({ property, children }: LayoutProps) {
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryIndex, setGalleryIndex] = useState(0)
+
+  const openGallery = (index: number = 0) => {
+    setGalleryIndex(index)
+    setGalleryOpen(true)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Back Navigation */}
@@ -419,8 +477,8 @@ export function GalleryLayout({ property, children }: LayoutProps) {
       {/* Gallery Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="relative">
-          <ImageGallery property={property} />
-          <div className="absolute top-4 left-4">
+          <ImageGallery property={property} onImageClick={openGallery} />
+          <div className="absolute top-4 left-4 z-10">
             <StatusBadge property={property} />
           </div>
         </div>
@@ -455,13 +513,29 @@ export function GalleryLayout({ property, children }: LayoutProps) {
           </div>
         </div>
       </div>
+
+      {/* Photo Gallery Modal */}
+      <PhotoGalleryModal
+        property={property}
+        isOpen={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        initialIndex={galleryIndex}
+      />
     </div>
   )
 }
 
 // COMPACT LAYOUT - Single column, condensed
 export function CompactLayout({ property, children }: LayoutProps) {
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryIndex, setGalleryIndex] = useState(0)
   const isSold = property.status === 'sold'
+  const allImages = property.images.length > 0 ? property.images : (property.imageUrl ? [property.imageUrl] : [])
+
+  const openGallery = (index: number = 0) => {
+    setGalleryIndex(index)
+    setGalleryOpen(true)
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -478,12 +552,15 @@ export function CompactLayout({ property, children }: LayoutProps) {
 
           <div className="flex gap-4">
             {/* Small Image */}
-            <div className="w-32 h-24 flex-shrink-0 rounded-lg overflow-hidden relative">
+            <div
+              className="w-32 h-24 flex-shrink-0 rounded-lg overflow-hidden relative cursor-pointer group"
+              onClick={() => openGallery(0)}
+            >
               {property.imageUrl ? (
                 <img
                   src={property.imageUrl}
                   alt={property.address}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 />
               ) : (
                 <PropertyPlaceholder beds={property.beds} />
@@ -495,6 +572,11 @@ export function CompactLayout({ property, children }: LayoutProps) {
                   {isSold ? 'SOLD' : 'FOR SALE'}
                 </span>
               </div>
+              {allImages.length > 1 && (
+                <div className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                  +{allImages.length - 1}
+                </div>
+              )}
             </div>
 
             {/* Info */}
@@ -539,13 +621,29 @@ export function CompactLayout({ property, children }: LayoutProps) {
           </div>
         </div>
       </div>
+
+      {/* Photo Gallery Modal */}
+      <PhotoGalleryModal
+        property={property}
+        isOpen={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        initialIndex={galleryIndex}
+      />
     </div>
   )
 }
 
 // MAGAZINE LAYOUT - Editorial style with large typography
 export function MagazineLayout({ property, children }: LayoutProps) {
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryIndex, setGalleryIndex] = useState(0)
   const isSold = property.status === 'sold'
+  const allImages = property.images.length > 0 ? property.images : (property.imageUrl ? [property.imageUrl] : [])
+
+  const openGallery = (index: number = 0) => {
+    setGalleryIndex(index)
+    setGalleryOpen(true)
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -614,12 +712,13 @@ export function MagazineLayout({ property, children }: LayoutProps) {
           </div>
 
           {/* Right: Image */}
-          <div className="relative">
+          <div className="relative group">
             {property.imageUrl ? (
               <img
                 src={property.imageUrl}
                 alt={property.address}
-                className="w-full aspect-[4/3] object-cover rounded-2xl shadow-2xl"
+                className="w-full aspect-[4/3] object-cover rounded-2xl shadow-2xl cursor-pointer transition-transform group-hover:scale-[1.02]"
+                onClick={() => openGallery(0)}
               />
             ) : (
               <PropertyPlaceholder beds={property.beds} className="w-full aspect-[4/3] rounded-2xl" />
@@ -628,6 +727,12 @@ export function MagazineLayout({ property, children }: LayoutProps) {
               <div className="absolute -bottom-4 -right-4 bg-amber-500 text-white px-4 py-2 rounded-full font-medium shadow-lg">
                 Sold Over Asking!
               </div>
+            )}
+            {allImages.length > 0 && (
+              <ViewAllPhotosButton
+                count={allImages.length}
+                onClick={() => openGallery(0)}
+              />
             )}
           </div>
         </div>
@@ -641,10 +746,10 @@ export function MagazineLayout({ property, children }: LayoutProps) {
         <div className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
             {/* Gallery */}
-            {property.images.length > 1 && (
+            {allImages.length > 1 && (
               <div>
                 <h2 className="text-2xl font-serif font-bold text-gray-900 mb-6">Gallery</h2>
-                <ImageGallery property={property} showMain={false} />
+                <ImageGallery property={property} showMain={false} onImageClick={openGallery} showViewAll={false} />
               </div>
             )}
 
@@ -658,6 +763,120 @@ export function MagazineLayout({ property, children }: LayoutProps) {
           </div>
         </div>
       </div>
+
+      {/* Photo Gallery Modal */}
+      <PhotoGalleryModal
+        property={property}
+        isOpen={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        initialIndex={galleryIndex}
+      />
+    </div>
+  )
+}
+
+// DEFAULT LAYOUT - Standard property page layout
+export function DefaultLayout({ property, children }: LayoutProps) {
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryIndex, setGalleryIndex] = useState(0)
+  const isSold = property.status === 'sold'
+  const overAsking = isSoldOverAsking(property)
+  const priceDiff = getPriceDifference(property)
+  const allImages = property.images.length > 0 ? property.images : (property.imageUrl ? [property.imageUrl] : [])
+
+  const openGallery = (index: number = 0) => {
+    setGalleryIndex(index)
+    setGalleryOpen(true)
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Back Navigation */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Link
+            href="/listings"
+            className="inline-flex items-center text-gray-600 hover:text-primary-600 transition-colors group"
+          >
+            <ArrowLeftIcon className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Back to All Properties
+          </Link>
+        </div>
+      </div>
+
+      {/* Hero Image Section */}
+      <div className="relative bg-gray-200">
+        <div className="max-w-7xl mx-auto">
+          <div className="aspect-[16/9] md:aspect-[21/9] relative overflow-hidden">
+            {property.imageUrl ? (
+              <img
+                src={property.imageUrl}
+                alt={getFullAddress(property)}
+                className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                onClick={() => openGallery(0)}
+              />
+            ) : (
+              <PropertyPlaceholder beds={property.beds} className="w-full h-full" />
+            )}
+
+            {/* Status Badge */}
+            <StatusBadge property={property} />
+
+            {/* View All Photos Button */}
+            {allImages.length > 0 && (
+              <ViewAllPhotosButton
+                count={allImages.length}
+                onClick={() => openGallery(0)}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Property Details */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Address & Price */}
+            <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                    {property.address}
+                  </h1>
+                  <p className="text-lg text-gray-600 flex items-center gap-2">
+                    <MapPinIcon className="w-5 h-5 text-primary-600" />
+                    {property.city}, {property.state} {property.zip}
+                  </p>
+                </div>
+                <PriceDisplay property={property} />
+              </div>
+
+              {/* Key Stats */}
+              <QuickStats property={property} />
+            </div>
+
+            {children}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Contact Card */}
+            <div className="sticky top-24">
+              <ContactCard property={property} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Photo Gallery Modal */}
+      <PhotoGalleryModal
+        property={property}
+        isOpen={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+        initialIndex={galleryIndex}
+      />
     </div>
   )
 }
@@ -673,7 +892,9 @@ export function getLayoutComponent(layout: LayoutStyle) {
       return CompactLayout
     case 'magazine':
       return MagazineLayout
+    case 'default':
+      return DefaultLayout
     default:
-      return null // Use default layout in page
+      return DefaultLayout
   }
 }
