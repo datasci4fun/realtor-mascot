@@ -22,7 +22,8 @@ import {
   MagazineLayout,
   DefaultLayout,
   getLayoutComponent,
-} from '@/components/listings/PropertyLayouts'
+} from '@/components/listings'
+import { CheckIcon } from '@/components/icons'
 import {
   findPropertyBySlug as findStaticProperty,
   getAllSlugs as getStaticSlugs,
@@ -158,127 +159,6 @@ export async function generateMetadata({
       description,
       images: property.imageUrl ? [property.imageUrl] : [],
     },
-  }
-}
-
-// SVG Icons
-function ArrowLeftIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-    </svg>
-  )
-}
-
-function BedIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-  )
-}
-
-function BathIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-      <path d="M21 10H7V7a2 2 0 012-2h.5a.5.5 0 01.5.5v.5a1 1 0 001 1h2a1 1 0 001-1V5a2 2 0 00-2-2H9a4 4 0 00-4 4v3H3a1 1 0 00-1 1v5a4 4 0 004 4h12a4 4 0 004-4v-5a1 1 0 00-1-1z" />
-    </svg>
-  )
-}
-
-function SquareIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" />
-    </svg>
-  )
-}
-
-function MapPinIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  )
-}
-
-function CalendarIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  )
-}
-
-function PhoneIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-    </svg>
-  )
-}
-
-function EnvelopeIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-    </svg>
-  )
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="currentColor" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-    </svg>
-  )
-}
-
-// House illustration placeholder
-function PropertyPlaceholder({ beds, className }: { beds: number; className?: string }) {
-  const baseClass = className || "w-full h-full"
-
-  if (beds >= 5) {
-    return (
-      <svg className={baseClass} viewBox="0 0 400 300" fill="none">
-        <rect width="400" height="300" className="fill-primary-50" />
-        <rect x="50" y="120" width="300" height="150" className="fill-primary-200" rx="4" />
-        <path d="M30 140 L200 40 L370 140" className="stroke-primary-400" strokeWidth="8" strokeLinecap="round" fill="none" />
-        <rect x="160" y="170" width="80" height="100" className="fill-primary-300" rx="2" />
-        <rect x="70" y="160" width="60" height="50" className="fill-primary-300" rx="2" />
-        <rect x="270" y="160" width="60" height="50" className="fill-primary-300" rx="2" />
-        <rect x="70" y="220" width="60" height="50" className="fill-primary-300" rx="2" />
-        <rect x="270" y="220" width="60" height="50" className="fill-primary-300" rx="2" />
-        <text x="200" y="290" textAnchor="middle" className="fill-primary-500 text-sm font-medium">Large Estate</text>
-      </svg>
-    )
-  } else if (beds >= 4) {
-    return (
-      <svg className={baseClass} viewBox="0 0 400 300" fill="none">
-        <rect width="400" height="300" className="fill-primary-50" />
-        <rect x="80" y="100" width="240" height="170" className="fill-primary-200" rx="4" />
-        <path d="M60 120 L200 30 L340 120" className="stroke-primary-400" strokeWidth="8" strokeLinecap="round" fill="none" />
-        <rect x="160" y="180" width="80" height="90" className="fill-primary-300" rx="2" />
-        <rect x="100" y="130" width="50" height="40" className="fill-primary-300" rx="2" />
-        <rect x="250" y="130" width="50" height="40" className="fill-primary-300" rx="2" />
-        <rect x="100" y="200" width="50" height="40" className="fill-primary-300" rx="2" />
-        <rect x="250" y="200" width="50" height="40" className="fill-primary-300" rx="2" />
-        <text x="200" y="290" textAnchor="middle" className="fill-primary-500 text-sm font-medium">Family Home</text>
-      </svg>
-    )
-  } else {
-    return (
-      <svg className={baseClass} viewBox="0 0 400 300" fill="none">
-        <rect width="400" height="300" className="fill-primary-50" />
-        <rect x="100" y="130" width="200" height="140" className="fill-primary-200" rx="4" />
-        <path d="M80 150 L200 60 L320 150" className="stroke-primary-400" strokeWidth="8" strokeLinecap="round" fill="none" />
-        <rect x="165" y="190" width="70" height="80" className="fill-primary-300" rx="2" />
-        <rect x="120" y="160" width="40" height="35" className="fill-primary-300" rx="2" />
-        <rect x="240" y="160" width="40" height="35" className="fill-primary-300" rx="2" />
-        <text x="200" y="290" textAnchor="middle" className="fill-primary-500 text-sm font-medium">Cozy Home</text>
-      </svg>
-    )
   }
 }
 
