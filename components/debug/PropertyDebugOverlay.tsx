@@ -3,15 +3,36 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Property } from '@/lib/properties'
+import { PlaceholderImageStyle, LayoutStyle, PLACEHOLDER_IMAGES } from '@/lib/mock-property'
 
 interface PropertyDebugOverlayProps {
   property: Property
   isPreviewMode: boolean
+  imageStyle?: PlaceholderImageStyle
+  layoutStyle?: LayoutStyle
 }
 
-export function PropertyDebugOverlay({ property, isPreviewMode }: PropertyDebugOverlayProps) {
+const IMAGE_STYLE_OPTIONS: { value: PlaceholderImageStyle; label: string; description: string }[] = [
+  { value: 'modern', label: 'Modern', description: 'Contemporary architecture' },
+  { value: 'traditional', label: 'Traditional', description: 'Classic home styles' },
+  { value: 'luxury', label: 'Luxury', description: 'High-end estates' },
+  { value: 'cottage', label: 'Cottage', description: 'Cozy & charming' },
+  { value: 'ranch', label: 'Ranch', description: 'Single-story homes' },
+  { value: 'none', label: 'None', description: 'Use SVG placeholders' },
+]
+
+const LAYOUT_STYLE_OPTIONS: { value: LayoutStyle; label: string; description: string }[] = [
+  { value: 'default', label: 'Default', description: 'Standard 2-column layout' },
+  { value: 'fullwidth', label: 'Full Width', description: 'Hero image spans full width' },
+  { value: 'gallery', label: 'Gallery First', description: 'Image gallery at top' },
+  { value: 'compact', label: 'Compact', description: 'Condensed single column' },
+  { value: 'magazine', label: 'Magazine', description: 'Editorial style layout' },
+]
+
+export function PropertyDebugOverlay({ property, isPreviewMode, imageStyle = 'modern', layoutStyle = 'default' }: PropertyDebugOverlayProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isEnabled, setIsEnabled] = useState(false)
+  const [activeTab, setActiveTab] = useState<'fields' | 'design'>('design')
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -38,8 +59,38 @@ export function PropertyDebugOverlay({ property, isPreviewMode }: PropertyDebugO
     const currentUrl = new URL(window.location.href)
     if (isPreviewMode) {
       currentUrl.searchParams.delete('preview')
+      currentUrl.searchParams.delete('images')
+      currentUrl.searchParams.delete('layout')
     } else {
       currentUrl.searchParams.set('preview', 'full')
+    }
+    router.push(currentUrl.pathname + currentUrl.search)
+  }
+
+  // Change image style
+  const setImageStyle = (style: PlaceholderImageStyle) => {
+    const currentUrl = new URL(window.location.href)
+    if (!isPreviewMode) {
+      currentUrl.searchParams.set('preview', 'full')
+    }
+    if (style === 'modern') {
+      currentUrl.searchParams.delete('images')
+    } else {
+      currentUrl.searchParams.set('images', style)
+    }
+    router.push(currentUrl.pathname + currentUrl.search)
+  }
+
+  // Change layout style
+  const setLayoutStyle = (layout: LayoutStyle) => {
+    const currentUrl = new URL(window.location.href)
+    if (!isPreviewMode) {
+      currentUrl.searchParams.set('preview', 'full')
+    }
+    if (layout === 'default') {
+      currentUrl.searchParams.delete('layout')
+    } else {
+      currentUrl.searchParams.set('layout', layout)
     }
     router.push(currentUrl.pathname + currentUrl.search)
   }
@@ -228,20 +279,11 @@ export function PropertyDebugOverlay({ property, isPreviewMode }: PropertyDebugO
               </svg>
               Property Debug
             </h2>
-            <p className="text-sm text-gray-400 mt-1">
-              {filledFields.length} / {allFields.length} fields populated
-            </p>
-            <div className="w-full bg-gray-700 rounded-full h-2 mt-2">
-              <div
-                className="bg-green-500 h-2 rounded-full transition-all"
-                style={{ width: `${(filledFields.length / allFields.length) * 100}%` }}
-              />
-            </div>
 
             {/* Preview Mode Toggle */}
             <button
               onClick={togglePreviewMode}
-              className={`mt-4 w-full py-2 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`mt-3 w-full py-2 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${
                 isPreviewMode
                   ? 'bg-amber-500 text-white hover:bg-amber-600'
                   : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -253,61 +295,221 @@ export function PropertyDebugOverlay({ property, isPreviewMode }: PropertyDebugO
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                   </svg>
-                  Viewing with Mock Data
+                  Preview Mode ON
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  Preview Full Template
+                  Enable Preview Mode
                 </>
               )}
             </button>
+
+            {/* Tabs */}
+            <div className="flex mt-4 border-b border-gray-700">
+              <button
+                onClick={() => setActiveTab('design')}
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'design'
+                    ? 'text-primary-400 border-b-2 border-primary-400'
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                Design
+              </button>
+              <button
+                onClick={() => setActiveTab('fields')}
+                className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                  activeTab === 'fields'
+                    ? 'text-primary-400 border-b-2 border-primary-400'
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                Fields ({filledFields.length}/{allFields.length})
+              </button>
+            </div>
           </div>
 
-          <div className="p-4 space-y-6">
-            {Object.entries(fieldGroups).map(([groupName, fields]) => {
-              const groupFields = Object.entries(fields)
-              const filledInGroup = groupFields.filter(([, v]) => getValueDisplay(v).hasValue).length
-
-              return (
-                <div key={groupName}>
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2 flex justify-between">
-                    <span>{groupName}</span>
-                    <span className="text-xs font-normal">
-                      {filledInGroup}/{groupFields.length}
-                    </span>
-                  </h3>
-                  <div className="space-y-1">
-                    {groupFields.map(([key, value]) => {
-                      const { display, hasValue } = getValueDisplay(value)
-                      return (
-                        <div
-                          key={key}
-                          className={`flex justify-between text-sm py-1 px-2 rounded ${
-                            hasValue ? 'bg-gray-800' : 'bg-gray-800/50'
-                          }`}
-                        >
-                          <span className={hasValue ? 'text-gray-300' : 'text-gray-500'}>
-                            {key}
-                          </span>
-                          <span
-                            className={`font-mono text-xs ${
-                              hasValue ? 'text-green-400' : 'text-red-400'
-                            }`}
-                            title={typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                          >
-                            {display.length > 25 ? display.substring(0, 25) + '...' : display}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
+          {/* Design Tab */}
+          {activeTab === 'design' && (
+            <div className="p-4 space-y-6">
+              {/* Image Style Selector */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Placeholder Images
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {IMAGE_STYLE_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setImageStyle(option.value)}
+                      className={`p-3 rounded-lg text-left transition-all ${
+                        imageStyle === option.value
+                          ? 'bg-primary-600 text-white ring-2 ring-primary-400'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium text-sm">{option.label}</div>
+                      <div className="text-xs opacity-70 mt-0.5">{option.description}</div>
+                    </button>
+                  ))}
                 </div>
-              )
-            })}
-          </div>
+                {/* Image Preview */}
+                {imageStyle !== 'none' && PLACEHOLDER_IMAGES[imageStyle] && (
+                  <div className="mt-3 rounded-lg overflow-hidden border border-gray-700">
+                    <img
+                      src={PLACEHOLDER_IMAGES[imageStyle].main}
+                      alt={`${imageStyle} style preview`}
+                      className="w-full h-32 object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Layout Style Selector */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                  </svg>
+                  Page Layout
+                </h3>
+                <div className="space-y-2">
+                  {LAYOUT_STYLE_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setLayoutStyle(option.value)}
+                      className={`w-full p-3 rounded-lg text-left transition-all flex items-center justify-between ${
+                        layoutStyle === option.value
+                          ? 'bg-primary-600 text-white ring-2 ring-primary-400'
+                          : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-medium text-sm">{option.label}</div>
+                        <div className="text-xs opacity-70 mt-0.5">{option.description}</div>
+                      </div>
+                      {layoutStyle === option.value && (
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="pt-4 border-t border-gray-700">
+                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  Quick Combinations
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      setImageStyle('luxury')
+                      setTimeout(() => setLayoutStyle('fullwidth'), 100)
+                    }}
+                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-300 transition-colors"
+                  >
+                    Luxury + Full Width
+                  </button>
+                  <button
+                    onClick={() => {
+                      setImageStyle('modern')
+                      setTimeout(() => setLayoutStyle('gallery'), 100)
+                    }}
+                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-300 transition-colors"
+                  >
+                    Modern + Gallery
+                  </button>
+                  <button
+                    onClick={() => {
+                      setImageStyle('cottage')
+                      setTimeout(() => setLayoutStyle('magazine'), 100)
+                    }}
+                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-300 transition-colors"
+                  >
+                    Cottage + Magazine
+                  </button>
+                  <button
+                    onClick={() => {
+                      setImageStyle('ranch')
+                      setTimeout(() => setLayoutStyle('compact'), 100)
+                    }}
+                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm text-gray-300 transition-colors"
+                  >
+                    Ranch + Compact
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Fields Tab */}
+          {activeTab === 'fields' && (
+            <div className="p-4 space-y-6">
+              {/* Progress Bar */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-400">Data Completeness</span>
+                  <span className="text-gray-300">{Math.round((filledFields.length / allFields.length) * 100)}%</span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-green-500 h-2 rounded-full transition-all"
+                    style={{ width: `${(filledFields.length / allFields.length) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {Object.entries(fieldGroups).map(([groupName, fields]) => {
+                const groupFields = Object.entries(fields)
+                const filledInGroup = groupFields.filter(([, v]) => getValueDisplay(v).hasValue).length
+
+                return (
+                  <div key={groupName}>
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2 flex justify-between">
+                      <span>{groupName}</span>
+                      <span className="text-xs font-normal">
+                        {filledInGroup}/{groupFields.length}
+                      </span>
+                    </h3>
+                    <div className="space-y-1">
+                      {groupFields.map(([key, value]) => {
+                        const { display, hasValue } = getValueDisplay(value)
+                        return (
+                          <div
+                            key={key}
+                            className={`flex justify-between text-sm py-1 px-2 rounded ${
+                              hasValue ? 'bg-gray-800' : 'bg-gray-800/50'
+                            }`}
+                          >
+                            <span className={hasValue ? 'text-gray-300' : 'text-gray-500'}>
+                              {key}
+                            </span>
+                            <span
+                              className={`font-mono text-xs ${
+                                hasValue ? 'text-green-400' : 'text-red-400'
+                              }`}
+                              title={typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                            >
+                              {display.length > 25 ? display.substring(0, 25) + '...' : display}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
           <div className="sticky bottom-0 bg-gray-800 p-4 border-t border-gray-700 text-xs text-gray-500">
             <p>Press <kbd className="bg-gray-700 px-1 rounded">Ctrl</kbd> + <kbd className="bg-gray-700 px-1 rounded">Shift</kbd> + <kbd className="bg-gray-700 px-1 rounded">D</kbd> to toggle debug mode</p>

@@ -1,8 +1,88 @@
 // Mock property data for template preview
 import { Property } from './properties'
 
+// Placeholder image styles
+export type PlaceholderImageStyle = 'modern' | 'traditional' | 'luxury' | 'cottage' | 'ranch' | 'none'
+
+// Layout options for the property page
+export type LayoutStyle = 'default' | 'fullwidth' | 'gallery' | 'compact' | 'magazine'
+
+// Placeholder image URLs using picsum.photos with consistent seeds based on style
+export const PLACEHOLDER_IMAGES: Record<PlaceholderImageStyle, { main: string; gallery: string[] }> = {
+  modern: {
+    main: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=800&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=800&h=600&fit=crop',
+    ],
+  },
+  traditional: {
+    main: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=1200&h=800&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800&h=600&fit=crop',
+    ],
+  },
+  luxury: {
+    main: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&h=800&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop',
+    ],
+  },
+  cottage: {
+    main: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=1200&h=800&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1605146769289-440113cc3d00?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1598228723793-52759bba239c?w=800&h=600&fit=crop',
+    ],
+  },
+  ranch: {
+    main: 'https://images.unsplash.com/photo-1625602812206-5ec545ca1231?w=1200&h=800&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1625602812206-5ec545ca1231?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=800&h=600&fit=crop',
+    ],
+  },
+  none: {
+    main: '',
+    gallery: [],
+  },
+}
+
+// Get placeholder images for a property based on style
+export function getPlaceholderImages(style: PlaceholderImageStyle): { main: string; gallery: string[] } {
+  return PLACEHOLDER_IMAGES[style]
+}
+
 // Generate realistic placeholder data for missing fields
-export function fillMockData(property: Property): Property {
+export function fillMockData(property: Property, imageStyle: PlaceholderImageStyle = 'modern'): Property {
+  const placeholderImages = imageStyle !== 'none' ? PLACEHOLDER_IMAGES[imageStyle] : null
+
+  // For images: when a style is selected (not 'none'), ALWAYS use placeholders
+  // This allows previewing different image styles regardless of existing images
+  const useImageUrl = imageStyle === 'none'
+    ? property.imageUrl
+    : (placeholderImages?.main || property.imageUrl || null)
+  const useImages = imageStyle === 'none'
+    ? property.images
+    : (placeholderImages?.gallery || property.images || [])
+
   return {
     ...property,
 
@@ -70,6 +150,11 @@ Located in a sought-after neighborhood with excellent schools and easy access to
       'Security System',
       'Two-Car Garage',
     ],
+
+    // Media - use placeholder images based on selected style
+    // When style is 'none', keep original images; otherwise use placeholders for preview
+    imageUrl: useImageUrl,
+    images: useImages,
 
     // Virtual tour placeholder
     virtualTourUrl: property.virtualTourUrl || null,
