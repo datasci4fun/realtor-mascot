@@ -80,7 +80,7 @@ async function getLeadsByIds(ids: string[]): Promise<Lead[]> {
       l.*,
       au.name as assigned_to_name
     FROM leads l
-    LEFT JOIN admin_users au ON l.assigned_to = au.id
+    LEFT JOIN admin_users au ON l.assigned_to = au.id::text
     WHERE l.id = ANY($1)
     ORDER BY l.created_at DESC
   `,
@@ -212,7 +212,7 @@ export async function mergeLeads(
         l.*,
         au.name as assigned_to_name
       FROM leads l
-      LEFT JOIN admin_users au ON l.assigned_to = au.id
+      LEFT JOIN admin_users au ON l.assigned_to = au.id::text
       WHERE l.id = $1
     `,
       [primaryId]

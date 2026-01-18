@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         l.updated_at,
         au.name as assigned_to_name
       FROM leads l
-      LEFT JOIN admin_users au ON l.assigned_to = au.id
+      LEFT JOIN admin_users au ON l.assigned_to = au.id::text
       WHERE 1=1
     `
     const params: (string | Date)[] = []

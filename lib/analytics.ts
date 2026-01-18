@@ -128,7 +128,7 @@ export async function getAgentLeaderboard(range: DateRange): Promise<AgentPerfor
        COUNT(l.id) as total_leads,
        COUNT(l.id) FILTER (WHERE l.status = 'closed') as closed_leads
      FROM admin_users u
-     LEFT JOIN leads l ON l.assigned_to = u.id
+     LEFT JOIN leads l ON l.assigned_to = u.id::text
        AND l.created_at >= $1 AND l.created_at <= $2
      WHERE u.is_active = TRUE
      GROUP BY u.id, u.name, u.email

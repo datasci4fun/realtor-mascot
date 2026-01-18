@@ -189,7 +189,7 @@ export async function generateAgentPerformanceReport(
         END
       ) as avg_days_to_close
     FROM leads l
-    JOIN admin_users au ON l.assigned_to = au.id
+    JOIN admin_users au ON l.assigned_to = au.id::text
     ${whereClause}
     GROUP BY au.id, au.name, au.email
     ORDER BY closed_leads DESC, total_leads DESC
