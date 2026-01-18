@@ -1,6 +1,12 @@
 // Database-driven property management
 import { query, ensureInitialized } from './db'
 
+export interface Schools {
+  elementary?: string
+  middle?: string
+  high?: string
+}
+
 export interface Property {
   id: string
   slug: string
@@ -10,9 +16,11 @@ export interface Property {
   city: string
   state: string
   zip: string
+  county: string | null
 
   // Pricing
   listPrice: number
+  originalPrice: number | null
   closePrice: number | null
   closeDate: string | null
 
@@ -22,8 +30,24 @@ export interface Property {
   halfBaths: number
   sqft: number | null
   lotSize: number | null
+  lotSizeUnit: string
   yearBuilt: number | null
+  stories: number
   propertyType: string
+  propertyStyle: string | null
+
+  // Garage
+  garageSpaces: number
+  garageType: string | null
+
+  // HOA
+  hoaFee: number | null
+  hoaFrequency: string
+
+  // Taxes
+  taxAmount: number | null
+  taxYear: number | null
+  taxRate: number | null
 
   // Status
   status: 'active' | 'pending' | 'sold' | 'off_market'
@@ -42,11 +66,17 @@ export interface Property {
   latitude: number | null
   longitude: number | null
   neighborhood: string | null
+  subdivision: string | null
   schoolDistrict: string | null
+  schools: Schools
 
   // MLS data
   mlsNumber: string | null
+  mlsBoard: string | null
   daysOnMarket: number | null
+  listingAgent: string | null
+  listingAgentPhone: string | null
+  listingOffice: string | null
 
   // Metadata
   source: string
@@ -64,16 +94,28 @@ function rowToProperty(row: any): Property {
     city: row.city,
     state: row.state,
     zip: row.zip,
+    county: row.county,
     listPrice: row.list_price,
+    originalPrice: row.original_price,
     closePrice: row.close_price,
     closeDate: row.close_date ? row.close_date.toISOString().split('T')[0] : null,
     beds: row.beds,
     baths: row.baths,
     halfBaths: row.half_baths || 0,
     sqft: row.sqft,
-    lotSize: row.lot_size,
+    lotSize: row.lot_size ? parseFloat(row.lot_size) : null,
+    lotSizeUnit: row.lot_size_unit || 'acres',
     yearBuilt: row.year_built,
+    stories: row.stories || 1,
     propertyType: row.property_type,
+    propertyStyle: row.property_style,
+    garageSpaces: row.garage_spaces || 0,
+    garageType: row.garage_type,
+    hoaFee: row.hoa_fee ? parseFloat(row.hoa_fee) : null,
+    hoaFrequency: row.hoa_frequency || 'monthly',
+    taxAmount: row.tax_amount ? parseFloat(row.tax_amount) : null,
+    taxYear: row.tax_year,
+    taxRate: row.tax_rate ? parseFloat(row.tax_rate) : null,
     status: row.status,
     imageUrl: row.image_url,
     images: row.images || [],
@@ -84,9 +126,15 @@ function rowToProperty(row: any): Property {
     latitude: row.latitude ? parseFloat(row.latitude) : null,
     longitude: row.longitude ? parseFloat(row.longitude) : null,
     neighborhood: row.neighborhood,
+    subdivision: row.subdivision,
     schoolDistrict: row.school_district,
+    schools: row.schools || {},
     mlsNumber: row.mls_number,
+    mlsBoard: row.mls_board,
     daysOnMarket: row.days_on_market,
+    listingAgent: row.listing_agent,
+    listingAgentPhone: row.listing_agent_phone,
+    listingOffice: row.listing_office,
     source: row.source,
     externalId: row.external_id,
     createdAt: row.created_at?.toISOString() || new Date().toISOString(),

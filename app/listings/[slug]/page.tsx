@@ -13,6 +13,7 @@ import {
   hasProperties,
   Property,
 } from '@/lib/properties'
+import { PropertyDebugOverlay } from '@/components/debug/PropertyDebugOverlay'
 import {
   findPropertyBySlug as findStaticProperty,
   getAllSlugs as getStaticSlugs,
@@ -32,7 +33,9 @@ function staticToDbFormat(prop: SoldProperty): Property {
     city: prop.city,
     state: prop.state,
     zip: prop.zip,
+    county: null,
     listPrice: prop.listPrice,
+    originalPrice: null,
     closePrice: prop.closePrice,
     closeDate: prop.closeDate,
     beds: prop.beds,
@@ -40,8 +43,18 @@ function staticToDbFormat(prop: SoldProperty): Property {
     halfBaths: prop.halfBaths || 0,
     sqft: prop.sqft,
     lotSize: prop.lotSize || null,
+    lotSizeUnit: 'sqft',
     yearBuilt: null,
+    stories: 1,
     propertyType: prop.propertyType || 'Single-Family',
+    propertyStyle: null,
+    garageSpaces: 0,
+    garageType: null,
+    hoaFee: null,
+    hoaFrequency: 'monthly',
+    taxAmount: null,
+    taxYear: null,
+    taxRate: null,
     status: 'sold',
     imageUrl: prop.imageUrl || null,
     images: prop.imageUrl ? [prop.imageUrl] : [],
@@ -52,9 +65,15 @@ function staticToDbFormat(prop: SoldProperty): Property {
     latitude: null,
     longitude: null,
     neighborhood: null,
+    subdivision: null,
     schoolDistrict: null,
+    schools: {},
     mlsNumber: null,
+    mlsBoard: prop.id.startsWith('har-') ? 'HAR' : 'NTREIS',
     daysOnMarket: null,
+    listingAgent: null,
+    listingAgentPhone: null,
+    listingOffice: null,
     source: prop.id.startsWith('har-') ? 'har.com' : 'manual',
     externalId: prop.id,
     createdAt: new Date().toISOString(),
@@ -363,9 +382,19 @@ export default async function PropertyPage({
                       </p>
                     </>
                   ) : (
-                    <p className="text-3xl md:text-4xl font-bold text-primary-600">
-                      {formatPrice(property.listPrice)}
-                    </p>
+                    <>
+                      <p className="text-3xl md:text-4xl font-bold text-primary-600">
+                        {formatPrice(property.listPrice)}
+                      </p>
+                      {property.originalPrice && property.originalPrice > property.listPrice && (
+                        <p className="text-sm text-gray-500">
+                          <span className="line-through">{formatPrice(property.originalPrice)}</span>
+                          <span className="text-green-600 ml-2">
+                            Price Reduced!
+                          </span>
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -406,44 +435,139 @@ export default async function PropertyPage({
                 </div>
               </div>
 
-              {/* Property Type & Additional Info */}
-              <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Property Type</p>
-                  <p className="font-semibold text-gray-900">{property.propertyType}</p>
+            </div>
+
+            {/* Property Details */}
+            <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Property Details</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
+                <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-500">Property Type</span>
+                  <span className="font-medium text-gray-900">{property.propertyType}</span>
                 </div>
+                {property.propertyStyle && (
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
+                    <span className="text-gray-500">Style</span>
+                    <span className="font-medium text-gray-900">{property.propertyStyle}</span>
+                  </div>
+                )}
                 {property.yearBuilt && (
-                  <div>
-                    <p className="text-sm text-gray-500">Year Built</p>
-                    <p className="font-semibold text-gray-900">{property.yearBuilt}</p>
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
+                    <span className="text-gray-500">Year Built</span>
+                    <span className="font-medium text-gray-900">{property.yearBuilt}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-b border-gray-100 pb-2">
+                  <span className="text-gray-500">Stories</span>
+                  <span className="font-medium text-gray-900">{property.stories}</span>
+                </div>
+                {property.sqft && (
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
+                    <span className="text-gray-500">Living Area</span>
+                    <span className="font-medium text-gray-900">{property.sqft.toLocaleString()} sq ft</span>
                   </div>
                 )}
                 {property.lotSize && (
-                  <div>
-                    <p className="text-sm text-gray-500">Lot Size</p>
-                    <p className="font-semibold text-gray-900">{property.lotSize.toLocaleString()} sq. ft.</p>
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
+                    <span className="text-gray-500">Lot Size</span>
+                    <span className="font-medium text-gray-900">
+                      {property.lotSizeUnit === 'acres'
+                        ? `${property.lotSize} acres`
+                        : `${property.lotSize.toLocaleString()} sq ft`}
+                    </span>
                   </div>
                 )}
-                {property.neighborhood && (
-                  <div>
-                    <p className="text-sm text-gray-500">Neighborhood</p>
-                    <p className="font-semibold text-gray-900">{property.neighborhood}</p>
-                  </div>
-                )}
-                {property.schoolDistrict && (
-                  <div>
-                    <p className="text-sm text-gray-500">School District</p>
-                    <p className="font-semibold text-gray-900">{property.schoolDistrict}</p>
-                  </div>
-                )}
-                {property.mlsNumber && (
-                  <div>
-                    <p className="text-sm text-gray-500">MLS #</p>
-                    <p className="font-semibold text-gray-900">{property.mlsNumber}</p>
+                {(property.garageSpaces > 0 || property.garageType) && (
+                  <div className="flex justify-between border-b border-gray-100 pb-2">
+                    <span className="text-gray-500">Garage</span>
+                    <span className="font-medium text-gray-900">
+                      {property.garageType ? `${property.garageType}, ` : ''}
+                      {property.garageSpaces}-car
+                    </span>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Financial Details */}
+            {(property.hoaFee || property.taxAmount) && (
+              <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Financial Details</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
+                  {property.hoaFee && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">HOA Fee</span>
+                      <span className="font-medium text-gray-900">
+                        ${property.hoaFee.toLocaleString()}/{property.hoaFrequency}
+                      </span>
+                    </div>
+                  )}
+                  {property.taxAmount && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Annual Taxes{property.taxYear ? ` (${property.taxYear})` : ''}</span>
+                      <span className="font-medium text-gray-900">${property.taxAmount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {property.taxRate && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Tax Rate</span>
+                      <span className="font-medium text-gray-900">{(property.taxRate * 100).toFixed(4)}%</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Location & Schools */}
+            {(property.county || property.neighborhood || property.subdivision || property.schoolDistrict || Object.keys(property.schools).length > 0) && (
+              <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Location & Schools</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
+                  {property.county && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">County</span>
+                      <span className="font-medium text-gray-900">{property.county}</span>
+                    </div>
+                  )}
+                  {property.neighborhood && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Neighborhood</span>
+                      <span className="font-medium text-gray-900">{property.neighborhood}</span>
+                    </div>
+                  )}
+                  {property.subdivision && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Subdivision</span>
+                      <span className="font-medium text-gray-900">{property.subdivision}</span>
+                    </div>
+                  )}
+                  {property.schoolDistrict && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">School District</span>
+                      <span className="font-medium text-gray-900">{property.schoolDistrict}</span>
+                    </div>
+                  )}
+                  {property.schools.elementary && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Elementary</span>
+                      <span className="font-medium text-gray-900">{property.schools.elementary}</span>
+                    </div>
+                  )}
+                  {property.schools.middle && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Middle School</span>
+                      <span className="font-medium text-gray-900">{property.schools.middle}</span>
+                    </div>
+                  )}
+                  {property.schools.high && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">High School</span>
+                      <span className="font-medium text-gray-900">{property.schools.high}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Description */}
             {property.description && (
@@ -468,6 +592,45 @@ export default async function PropertyPage({
                       <span>{feature}</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* MLS Information */}
+            {(property.mlsNumber || property.listingAgent || property.daysOnMarket) && (
+              <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Listing Information</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4">
+                  {property.mlsNumber && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">MLS #</span>
+                      <span className="font-medium text-gray-900">{property.mlsNumber}</span>
+                    </div>
+                  )}
+                  {property.mlsBoard && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">MLS Board</span>
+                      <span className="font-medium text-gray-900">{property.mlsBoard}</span>
+                    </div>
+                  )}
+                  {property.daysOnMarket && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Days on Market</span>
+                      <span className="font-medium text-gray-900">{property.daysOnMarket}</span>
+                    </div>
+                  )}
+                  {property.listingAgent && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Listing Agent</span>
+                      <span className="font-medium text-gray-900">{property.listingAgent}</span>
+                    </div>
+                  )}
+                  {property.listingOffice && (
+                    <div className="flex justify-between border-b border-gray-100 pb-2">
+                      <span className="text-gray-500">Listing Office</span>
+                      <span className="font-medium text-gray-900">{property.listingOffice}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -551,6 +714,9 @@ export default async function PropertyPage({
           </div>
         </div>
       </div>
+
+      {/* Debug Overlay */}
+      <PropertyDebugOverlay property={property} />
     </div>
   )
 }

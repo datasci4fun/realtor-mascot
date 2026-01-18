@@ -226,9 +226,11 @@ export async function initializeDatabase() {
       city TEXT NOT NULL,
       state TEXT NOT NULL DEFAULT 'TX',
       zip TEXT NOT NULL,
+      county TEXT,
 
       -- Pricing
       list_price INTEGER NOT NULL,
+      original_price INTEGER,
       close_price INTEGER,
       close_date DATE,
 
@@ -237,9 +239,25 @@ export async function initializeDatabase() {
       baths INTEGER NOT NULL,
       half_baths INTEGER DEFAULT 0,
       sqft INTEGER,
-      lot_size INTEGER,
+      lot_size DECIMAL(10, 4),
+      lot_size_unit TEXT DEFAULT 'acres',
       year_built INTEGER,
+      stories INTEGER DEFAULT 1,
       property_type TEXT DEFAULT 'Single-Family',
+      property_style TEXT,
+
+      -- Garage
+      garage_spaces INTEGER DEFAULT 0,
+      garage_type TEXT,
+
+      -- HOA
+      hoa_fee DECIMAL(10, 2),
+      hoa_frequency TEXT DEFAULT 'monthly',
+
+      -- Taxes
+      tax_amount DECIMAL(10, 2),
+      tax_year INTEGER,
+      tax_rate DECIMAL(5, 4),
 
       -- Status
       status TEXT DEFAULT 'sold' CHECK(status IN ('active', 'pending', 'sold', 'off_market')),
@@ -258,11 +276,17 @@ export async function initializeDatabase() {
       latitude DECIMAL(10, 8),
       longitude DECIMAL(11, 8),
       neighborhood TEXT,
+      subdivision TEXT,
       school_district TEXT,
+      schools JSONB DEFAULT '{}',
 
       -- MLS data
       mls_number TEXT,
+      mls_board TEXT,
       days_on_market INTEGER,
+      listing_agent TEXT,
+      listing_agent_phone TEXT,
+      listing_office TEXT,
 
       -- Metadata
       source TEXT DEFAULT 'manual',
