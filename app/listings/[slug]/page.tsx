@@ -13,6 +13,7 @@ import {
   hasProperties,
   Property,
 } from '@/lib/properties'
+import { fillMockData } from '@/lib/mock-property'
 import { PropertyDebugOverlay } from '@/components/debug/PropertyDebugOverlay'
 import {
   findPropertyBySlug as findStaticProperty,
@@ -275,14 +276,24 @@ function PropertyPlaceholder({ beds, className }: { beds: number; className?: st
 
 export default async function PropertyPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ preview?: string }>
 }) {
   const { slug } = await params
-  const property = await getProperty(slug)
+  const { preview } = await searchParams
+  const isPreviewMode = preview === 'full'
+
+  let property = await getProperty(slug)
 
   if (!property) {
     notFound()
+  }
+
+  // Apply mock data for missing fields if in preview mode
+  if (isPreviewMode) {
+    property = fillMockData(property)
   }
 
   const overAsking = dbIsSoldOverAsking(property)
@@ -716,7 +727,7 @@ export default async function PropertyPage({
       </div>
 
       {/* Debug Overlay */}
-      <PropertyDebugOverlay property={property} />
+      <PropertyDebugOverlay property={property} isPreviewMode={isPreviewMode} />
     </div>
   )
 }

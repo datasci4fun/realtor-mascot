@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       rows = parsed.rows.map((row) => {
         const importRow: ImportRow = {}
 
-        for (const [originalHeader, field] of Object.entries(headerMapping)) {
+        for (const [originalHeader, field] of Object.entries(headerMapping) as [string, string][]) {
           if (field && row[originalHeader]) {
             ;(importRow as any)[field] = row[originalHeader]
           }

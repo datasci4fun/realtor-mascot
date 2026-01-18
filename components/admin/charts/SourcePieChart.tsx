@@ -36,7 +36,7 @@ export default function SourcePieChart({ data }: Props) {
             outerRadius={100}
             dataKey="count"
             nameKey="name"
-            label={({ name, percentage }) => `${name}: ${percentage}%`}
+            label={({ name, payload }: any) => `${name}: ${payload?.percentage || 0}%`}
             labelLine={false}
           >
             {formattedData.map((entry, index) => (
@@ -44,7 +44,7 @@ export default function SourcePieChart({ data }: Props) {
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => [value, 'Leads']}
+            formatter={(value) => [value, 'Leads']}
             contentStyle={{
               backgroundColor: 'white',
               border: '1px solid #e5e7eb',

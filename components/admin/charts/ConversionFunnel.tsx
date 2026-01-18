@@ -49,7 +49,7 @@ export default function ConversionFunnel({ data }: Props) {
             axisLine={{ stroke: '#e5e7eb' }}
           />
           <Tooltip
-            formatter={(value: number, name: string, props: any) => [
+            formatter={(value, _name, props: any) => [
               `${value} (${props.payload.percentage}%)`,
               'Leads',
             ]}

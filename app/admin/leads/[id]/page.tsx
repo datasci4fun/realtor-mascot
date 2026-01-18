@@ -220,7 +220,7 @@ export default function LeadDetailPage({ params }: { params: { id: string } }) {
               <option value="closed">Closed</option>
               <option value="lost">Lost</option>
             </select>
-            <SetReminderButton leadId={lead.id} onSuccess={() => fetchLead()} />
+            <SetReminderButton leadId={lead.id!} onSuccess={() => fetchLead()} />
           </div>
         </div>
 

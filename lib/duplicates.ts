@@ -89,18 +89,17 @@ async function getLeadsByIds(ids: string[]): Promise<Lead[]> {
 
   return result.rows.map((row) => ({
     id: row.id,
-    name: row.name,
+    name: row.name || '',
     email: row.email,
     phone: row.phone,
     intent: row.intent,
     timeline: row.timeline,
     budget: row.budget,
-    message: row.message,
     source: row.source,
+    page: row.page || '',
     status: row.status,
     priority: row.priority,
     assignedTo: row.assigned_to,
-    assignedToName: row.assigned_to_name,
     timestamp: row.created_at,
     updatedAt: row.updated_at,
   }))
@@ -221,18 +220,17 @@ export async function mergeLeads(
     const row = updatedResult.rows[0]
     return {
       id: row.id,
-      name: row.name,
+      name: row.name || '',
       email: row.email,
       phone: row.phone,
       intent: row.intent,
       timeline: row.timeline,
       budget: row.budget,
-      message: row.message,
       source: row.source,
+      page: row.page || '',
       status: row.status,
       priority: row.priority,
       assignedTo: row.assigned_to,
-      assignedToName: row.assigned_to_name,
       timestamp: row.created_at,
       updatedAt: row.updated_at,
     }

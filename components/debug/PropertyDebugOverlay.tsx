@@ -1,21 +1,29 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Property } from '@/lib/properties'
 
 interface PropertyDebugOverlayProps {
   property: Property
+  isPreviewMode: boolean
 }
 
-export function PropertyDebugOverlay({ property }: PropertyDebugOverlayProps) {
+export function PropertyDebugOverlay({ property, isPreviewMode }: PropertyDebugOverlayProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isEnabled, setIsEnabled] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Check localStorage for debug mode on mount
   useEffect(() => {
     const debugEnabled = localStorage.getItem('propertyDebugMode') === 'true'
     setIsEnabled(debugEnabled)
-  }, [])
+    // Auto-open panel if in preview mode
+    if (isPreviewMode && debugEnabled) {
+      setIsOpen(true)
+    }
+  }, [isPreviewMode])
 
   // Toggle debug mode
   const toggleDebugMode = () => {
@@ -23,6 +31,17 @@ export function PropertyDebugOverlay({ property }: PropertyDebugOverlayProps) {
     setIsEnabled(newValue)
     localStorage.setItem('propertyDebugMode', String(newValue))
     if (!newValue) setIsOpen(false)
+  }
+
+  // Toggle preview mode (with mock data)
+  const togglePreviewMode = () => {
+    const currentUrl = new URL(window.location.href)
+    if (isPreviewMode) {
+      currentUrl.searchParams.delete('preview')
+    } else {
+      currentUrl.searchParams.set('preview', 'full')
+    }
+    router.push(currentUrl.pathname + currentUrl.search)
   }
 
   // Keyboard shortcut: Ctrl+Shift+D to toggle
@@ -151,6 +170,24 @@ export function PropertyDebugOverlay({ property }: PropertyDebugOverlayProps) {
 
   return (
     <>
+      {/* Preview Mode Banner */}
+      {isPreviewMode && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-white py-2 px-4 text-center text-sm font-medium shadow-lg">
+          <span className="inline-flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            PREVIEW MODE - Showing template with placeholder data for missing fields
+            <button
+              onClick={togglePreviewMode}
+              className="ml-4 bg-amber-600 hover:bg-amber-700 px-3 py-1 rounded text-xs"
+            >
+              Exit Preview
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -200,6 +237,33 @@ export function PropertyDebugOverlay({ property }: PropertyDebugOverlayProps) {
                 style={{ width: `${(filledFields.length / allFields.length) * 100}%` }}
               />
             </div>
+
+            {/* Preview Mode Toggle */}
+            <button
+              onClick={togglePreviewMode}
+              className={`mt-4 w-full py-2 px-4 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+                isPreviewMode
+                  ? 'bg-amber-500 text-white hover:bg-amber-600'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {isPreviewMode ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Viewing with Mock Data
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Preview Full Template
+                </>
+              )}
+            </button>
           </div>
 
           <div className="p-4 space-y-6">
