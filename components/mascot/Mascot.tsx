@@ -102,7 +102,7 @@ export function Mascot() {
           // Arrived at destination
           setWalkState('paused')
           setWalkDirection(0) // Stop and face forward
-          setMood('friendly')
+          // Note: setMood('friendly') is handled by the useEffect that watches walkState
           return { x: targetX }
         }
 
@@ -118,7 +118,7 @@ export function Mascot() {
         clearInterval(walkIntervalRef.current)
       }
     }
-  }, [walkState, targetX, setMood])
+  }, [walkState, targetX])
 
   // Update mood when walk state changes
   useEffect(() => {
