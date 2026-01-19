@@ -8,6 +8,7 @@ import { useSiteSettings, formatPhoneForLink } from '@/components/providers/Site
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/listings', label: 'Sold Homes' },
+  { href: '/tools/mortgage-calculator', label: 'Mortgage Calculator' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
 ]

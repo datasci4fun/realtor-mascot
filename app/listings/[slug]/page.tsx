@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import MortgageCalculator from '@/components/tools/MortgageCalculator'
 import {
   getPropertyBySlug,
   getAllPropertySlugs,
@@ -282,6 +283,11 @@ export default async function PropertyPage({
             )}
           </div>
         </div>
+      )}
+
+      {/* Mortgage Calculator - only for active listings */}
+      {property.status !== 'sold' && (
+        <MortgageCalculator initialPrice={property.listPrice} compact />
       )}
 
       {/* Location & Schools */}

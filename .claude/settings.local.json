@@ -33,7 +33,10 @@
       "Bash(npx next dev:*)",
       "Bash(netstat:*)",
       "Bash(wmic process where \"name=''node.exe''\" get processid,commandline)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(node scripts/seed-compare-test.js:*)",
+      "WebSearch"
     ]
   }
 }

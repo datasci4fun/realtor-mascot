@@ -232,6 +232,15 @@ NEXT_PUBLIC_BROKERAGE=Artistic Real Estate Group
 
 - [MASCOT_DEV_NOTES.md](./MASCOT_DEV_NOTES.md) - Detailed animation development guide
 
+## Claude Skills
+
+Skills are detailed guides for specific tasks. Located in `.claude/skills/`:
+
+| Skill | Purpose |
+|-------|---------|
+| [dev-environment.md](./.claude/skills/dev-environment.md) | Dev server, Docker, database management, ports, troubleshooting |
+| [mascot-animation.md](./.claude/skills/mascot-animation.md) | VRM bone rotations, animation creation, debug tools |
+
 ## Dependencies
 
 Key packages:

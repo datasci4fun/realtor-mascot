@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { getPortalClient } from '@/lib/portal-auth'
 import { query, ensureInitialized } from '@/lib/db'
 import type { Favorite, Property } from '@/types/portal'
-import FavoritesClient from './FavoritesClient'
+import CompareClient from './CompareClient'
 
 async function getFavorites(leadId: string): Promise<(Favorite & { property: Property })[]> {
   await ensureInitialized()
@@ -48,7 +48,7 @@ async function getFavorites(leadId: string): Promise<(Favorite & { property: Pro
   }))
 }
 
-export default async function FavoritesPage() {
+export default async function ComparePage() {
   const client = await getPortalClient()
 
   if (!client) {
@@ -57,5 +57,5 @@ export default async function FavoritesPage() {
 
   const favorites = await getFavorites(client.id)
 
-  return <FavoritesClient favorites={favorites} />
+  return <CompareClient favorites={favorites} />
 }
