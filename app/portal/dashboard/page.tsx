@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getPortalClient } from '@/lib/portal-auth'
 import { query, ensureInitialized } from '@/lib/db'
+import { getSiteSettings } from '@/lib/site-settings'
 import type { PortalDashboardStats } from '@/types/portal'
 
 async function getDashboardStats(leadId: string): Promise<PortalDashboardStats> {
@@ -31,9 +32,7 @@ export default async function PortalDashboardPage() {
   }
 
   const stats = await getDashboardStats(client.id)
-
-  const realtorName = process.env.NEXT_PUBLIC_REALTOR_NAME || 'Greg Knapp'
-  const realtorPhone = process.env.NEXT_PUBLIC_REALTOR_PHONE || '(469) 485-7313'
+  const settings = await getSiteSettings()
 
   return (
     <div className="p-6 lg:p-8">
@@ -43,7 +42,7 @@ export default async function PortalDashboardPage() {
           Welcome{client.name ? `, ${client.name.split(' ')[0]}` : ''}!
         </h1>
         <p className="text-gray-600 mt-1">
-          Track your real estate journey and stay connected with {realtorName}.
+          Track your real estate journey and stay connected with {settings.realtor_name}.
         </p>
       </div>
 
@@ -153,7 +152,7 @@ export default async function PortalDashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="font-medium text-gray-900">Send a Message</p>
-                <p className="text-sm text-gray-500">Chat directly with {realtorName}</p>
+                <p className="text-sm text-gray-500">Chat directly with {settings.realtor_name}</p>
               </div>
               <svg className="w-5 h-5 text-gray-400 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -185,23 +184,23 @@ export default async function PortalDashboardPage() {
           <h2 className="text-lg font-semibold mb-4">Your Agent</h2>
           <div className="flex items-start">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-primary-600 font-bold text-xl">
-              {realtorName.split(' ').map((n) => n[0]).join('')}
+              {settings.realtor_name.split(' ').map((n) => n[0]).join('')}
             </div>
             <div className="ml-4">
-              <p className="text-xl font-semibold">{realtorName}</p>
-              <p className="text-primary-100 text-sm">Broker & Owner</p>
-              <p className="text-primary-100 text-sm">Artistic Real Estate Group</p>
+              <p className="text-xl font-semibold">{settings.realtor_name}</p>
+              {settings.realtor_title && <p className="text-primary-100 text-sm">{settings.realtor_title}</p>}
+              <p className="text-primary-100 text-sm">{settings.brokerage_name}</p>
             </div>
           </div>
           <div className="mt-6 space-y-3">
             <a
-              href={`tel:${realtorPhone.replace(/[^0-9]/g, '')}`}
+              href={`tel:${settings.realtor_phone.replace(/[^0-9]/g, '')}`}
               className="flex items-center text-white hover:text-primary-100 transition-colors"
             >
               <svg className="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              {realtorPhone}
+              {settings.realtor_phone}
             </a>
             <Link
               href="/portal/messages"

@@ -5,6 +5,7 @@ import { MascotProvider } from '@/components/mascot/MascotProvider'
 import { Mascot } from '@/components/mascot/Mascot'
 import { Navigation } from '@/components/ui/Navigation'
 import { Footer } from '@/components/ui/Footer'
+import { SiteSettingsProvider } from '@/components/providers/SiteSettingsProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,21 +23,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <MascotProvider>
-          {/* Navigation */}
-          <Navigation />
+        <SiteSettingsProvider>
+          <MascotProvider>
+            {/* Navigation */}
+            <Navigation />
 
-          {/* Page content */}
-          <main className="min-h-screen">
-            {children}
-          </main>
+            {/* Page content */}
+            <main className="min-h-screen">
+              {children}
+            </main>
 
-          {/* Footer */}
-          <Footer />
+            {/* Footer */}
+            <Footer />
 
-          {/* Mascot - persists across all pages */}
-          <Mascot />
-        </MascotProvider>
+            {/* Mascot - persists across all pages */}
+            <Mascot />
+          </MascotProvider>
+        </SiteSettingsProvider>
       </body>
     </html>
   )

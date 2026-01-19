@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getPortalClient } from '@/lib/portal-auth'
 import { query, ensureInitialized } from '@/lib/db'
+import { getSiteSettings } from '@/lib/site-settings'
 import type { Message } from '@/types/portal'
 import MessagesClient from './MessagesClient'
 
@@ -35,8 +36,7 @@ export default async function MessagesPage() {
   }
 
   const messages = await getMessages(client.id)
+  const settings = await getSiteSettings()
 
-  const realtorName = process.env.NEXT_PUBLIC_REALTOR_NAME || 'Greg Knapp'
-
-  return <MessagesClient messages={messages} clientId={client.id} clientName={client.name} realtorName={realtorName} />
+  return <MessagesClient messages={messages} clientId={client.id} clientName={client.name} realtorName={settings.realtor_name} />
 }

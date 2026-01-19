@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSiteSettings } from '@/components/providers/SiteSettingsProvider'
 
 interface EmailTemplate {
   id: string
@@ -41,24 +42,34 @@ const categoryColors: Record<string, string> = {
   other: 'bg-gray-100 text-gray-700',
 }
 
-// Sample data for preview
-const sampleData = {
-  lead: { name: 'John Smith', email: 'john@example.com', phone: '(555) 123-4567' },
-  agent: { name: 'Greg Knapp', email: 'angela@artisticrealestate.com', phone: '(469) 485-7313' },
+// Sample lead data for preview (agent data comes from settings)
+const sampleLeadData = {
+  name: 'John Smith',
+  email: 'john@example.com',
+  phone: '(555) 123-4567',
 }
 
-function applyMergeFields(text: string): string {
-  let result = text
-  result = result.replace(/\{\{lead\.name\}\}/g, sampleData.lead.name)
-  result = result.replace(/\{\{lead\.email\}\}/g, sampleData.lead.email)
-  result = result.replace(/\{\{lead\.phone\}\}/g, sampleData.lead.phone)
-  result = result.replace(/\{\{agent\.name\}\}/g, sampleData.agent.name)
-  result = result.replace(/\{\{agent\.email\}\}/g, sampleData.agent.email)
-  result = result.replace(/\{\{agent\.phone\}\}/g, sampleData.agent.phone)
-  return result
+function createApplyMergeFields(agentName: string, agentEmail: string, agentPhone: string) {
+  return function applyMergeFields(text: string): string {
+    let result = text
+    result = result.replace(/\{\{lead\.name\}\}/g, sampleLeadData.name)
+    result = result.replace(/\{\{lead\.email\}\}/g, sampleLeadData.email)
+    result = result.replace(/\{\{lead\.phone\}\}/g, sampleLeadData.phone)
+    result = result.replace(/\{\{agent\.name\}\}/g, agentName)
+    result = result.replace(/\{\{agent\.email\}\}/g, agentEmail)
+    result = result.replace(/\{\{agent\.phone\}\}/g, agentPhone)
+    return result
+  }
 }
 
 export default function TemplatesPage() {
+  const { settings } = useSiteSettings()
+  const applyMergeFields = createApplyMergeFields(
+    settings.realtor_name,
+    settings.realtor_email,
+    settings.realtor_phone
+  )
+
   const [templates, setTemplates] = useState<EmailTemplate[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState('all')

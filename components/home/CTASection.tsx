@@ -1,7 +1,12 @@
+'use client'
+
 import Link from 'next/link'
 import { PhoneIcon } from '@/components/icons'
+import { useSiteSettings, formatPhoneForLink } from '@/components/providers/SiteSettingsProvider'
 
 export function CTASection() {
+  const { settings } = useSiteSettings()
+
   return (
     <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white py-24 relative overflow-hidden">
       {/* Decorative elements */}
@@ -23,11 +28,11 @@ export function CTASection() {
             Schedule a Consultation
           </Link>
           <a
-            href="tel:469-485-7313"
+            href={`tel:${formatPhoneForLink(settings.realtor_phone)}`}
             className="border-2 border-white text-white px-10 py-4 rounded-xl font-semibold hover:bg-white/10 transition-all inline-flex items-center justify-center gap-2"
           >
             <PhoneIcon className="w-5 h-5" />
-            (469) 485-7313
+            {settings.realtor_phone}
           </a>
         </div>
       </div>
