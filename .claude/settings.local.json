@@ -32,7 +32,8 @@
       "Bash(npx next lint:*)",
       "Bash(npx next dev:*)",
       "Bash(netstat:*)",
-      "Bash(wmic process where \"name=''node.exe''\" get processid,commandline)"
+      "Bash(wmic process where \"name=''node.exe''\" get processid,commandline)",
+      "Bash(gh pr create:*)"
     ]
   }
 }
