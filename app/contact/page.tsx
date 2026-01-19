@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useSiteSettings, formatPhoneForLink } from '@/components/providers/SiteSettingsProvider'
 
 // SVG Icon Components
 function PhoneIcon({ className = "w-6 h-6" }: { className?: string }) {
@@ -61,52 +62,53 @@ function BadgeIcon({ className = "w-6 h-6" }: { className?: string }) {
   )
 }
 
-// Contact info data
-const contactInfo = [
-  {
-    icon: PhoneIcon,
-    title: 'Phone',
-    content: (
-      <>
-        <a href="tel:469-485-7313" className="text-primary-600 hover:text-primary-700 font-medium">
-          (469) 485-7313
-        </a>
-        <p className="text-sm text-gray-500 mt-1">Call or text anytime</p>
-      </>
-    ),
-  },
-  {
-    icon: EmailIcon,
-    title: 'Email',
-    content: (
-      <a href="mailto:angela@artisticrealestate.com" className="text-primary-600 hover:text-primary-700 font-medium">
-        angela@artisticrealestate.com
-      </a>
-    ),
-  },
-  {
-    icon: LocationIcon,
-    title: 'Service Area',
-    content: (
-      <>
-        <span className="text-gray-900 font-medium">Dallas-Fort Worth Metroplex</span>
-        <p className="text-sm text-gray-500 mt-1">Serving all of North Texas</p>
-      </>
-    ),
-  },
-  {
-    icon: ClockIcon,
-    title: 'Availability',
-    content: (
-      <>
-        <span className="text-gray-900">Mon - Fri: 9am - 7pm</span>
-        <p className="text-gray-600">Sat - Sun: 10am - 5pm</p>
-      </>
-    ),
-  },
-]
-
 export default function ContactPage() {
+  const { settings } = useSiteSettings()
+
+  // Contact info data - built dynamically from settings
+  const contactInfo = [
+    {
+      icon: PhoneIcon,
+      title: 'Phone',
+      content: (
+        <>
+          <a href={`tel:${formatPhoneForLink(settings.realtor_phone)}`} className="text-primary-600 hover:text-primary-700 font-medium">
+            {settings.realtor_phone}
+          </a>
+          <p className="text-sm text-gray-500 mt-1">Call or text anytime</p>
+        </>
+      ),
+    },
+    {
+      icon: EmailIcon,
+      title: 'Email',
+      content: (
+        <a href={`mailto:${settings.realtor_email}`} className="text-primary-600 hover:text-primary-700 font-medium">
+          {settings.realtor_email}
+        </a>
+      ),
+    },
+    {
+      icon: LocationIcon,
+      title: 'Service Area',
+      content: (
+        <>
+          <span className="text-gray-900 font-medium">{settings.service_areas || 'Dallas-Fort Worth Metroplex'}</span>
+          <p className="text-sm text-gray-500 mt-1">Serving all of North Texas</p>
+        </>
+      ),
+    },
+    {
+      icon: ClockIcon,
+      title: 'Availability',
+      content: (
+        <>
+          <span className="text-gray-900">Mon - Fri: 9am - 7pm</span>
+          <p className="text-gray-600">Sat - Sun: 10am - 5pm</p>
+        </>
+      ),
+    },
+  ]
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -156,7 +158,7 @@ export default function ContactPage() {
 
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Message Sent!</h1>
           <p className="text-gray-600 text-lg max-w-md mb-8">
-            Thank you for reaching out! Greg will get back to you within 24 hours.
+            Thank you for reaching out! {settings.realtor_name.split(' ')[0]} will get back to you within 24 hours.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -257,11 +259,11 @@ export default function ContactPage() {
 
               {/* Quick Call Button */}
               <a
-                href="tel:469-485-7313"
+                href={`tel:${formatPhoneForLink(settings.realtor_phone)}`}
                 className="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-accent-500 to-accent-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-accent-600 hover:to-accent-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
               >
                 <PhoneIcon className="w-5 h-5" />
-                Call Greg Now
+                Call {settings.realtor_name.split(' ')[0]} Now
               </a>
             </div>
 

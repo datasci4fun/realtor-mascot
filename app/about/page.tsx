@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getSoldStats, formatPrice } from '@/lib/sold-properties'
+import { getSiteSettings } from '@/lib/site-settings'
 
 // SVG Icon Components
 function PhoneIcon({ className }: { className?: string }) {
@@ -77,8 +78,9 @@ function StarIcon({ filled = false, className }: { filled?: boolean; className?:
   )
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
   const stats = getSoldStats()
+  const settings = await getSiteSettings()
 
   return (
     <div>
@@ -96,9 +98,9 @@ export default function AboutPage() {
           <div className="max-w-3xl">
             <p className="text-primary-200 font-semibold mb-4 tracking-wide uppercase text-sm inline-flex items-center gap-2">
               <span className="w-8 h-px bg-primary-300"></span>
-              Artistic Real Estate Group
+              {settings.brokerage_name}
             </p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">About Greg Knapp</h1>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">About {settings.realtor_name}</h1>
             <p className="text-xl text-primary-100 leading-relaxed max-w-2xl">
               Your dedicated buyer's agent in the Dallas-Fort Worth metroplex.
               Personalized service and expert guidance for your home search.
@@ -121,8 +123,8 @@ export default function AboutPage() {
                   <div className="w-40 h-40 mx-auto mb-6 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
                     <UserIcon className="w-20 h-20 text-primary-600" />
                   </div>
-                  <p className="text-primary-800 font-bold text-2xl">Greg Knapp</p>
-                  <p className="text-primary-600 font-medium">Broker & Owner</p>
+                  <p className="text-primary-800 font-bold text-2xl">{settings.realtor_name}</p>
+                  <p className="text-primary-600 font-medium">{settings.realtor_title || 'Real Estate Agent'}</p>
                 </div>
 
                 {/* Floating badges */}
@@ -146,7 +148,7 @@ export default function AboutPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Call or Text Anytime</p>
-                    <p className="font-bold text-gray-900 text-lg">(469) 485-7313</p>
+                    <p className="font-bold text-gray-900 text-lg">{settings.realtor_phone}</p>
                   </div>
                 </div>
               </div>
@@ -195,18 +197,18 @@ export default function AboutPage() {
               {/* CTA Buttons */}
               <div className="mt-10 flex flex-wrap gap-4">
                 <a
-                  href="tel:469-485-7313"
+                  href={`tel:${settings.realtor_phone.replace(/[^0-9]/g, '')}`}
                   className="bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-primary-700 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 inline-flex items-center gap-2"
                 >
                   <PhoneIcon className="w-5 h-5" />
                   Call Now
                 </a>
                 <a
-                  href="mailto:gregsmybroker@gmail.com"
+                  href={`mailto:${settings.realtor_email}`}
                   className="border-2 border-primary-600 text-primary-600 px-8 py-4 rounded-xl font-semibold hover:bg-primary-50 transition-all inline-flex items-center gap-2"
                 >
                   <EmailIcon className="w-5 h-5" />
-                  Email Greg
+                  Email {settings.realtor_name.split(' ')[0]}
                 </a>
               </div>
             </div>
@@ -342,14 +344,14 @@ export default function AboutPage() {
               href="/contact"
               className="bg-white text-primary-600 px-10 py-4 rounded-xl font-semibold hover:bg-primary-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 inline-flex items-center justify-center gap-2"
             >
-              Contact Greg
+              Contact {settings.realtor_name.split(' ')[0]}
             </Link>
             <a
-              href="tel:469-485-7313"
+              href={`tel:${settings.realtor_phone.replace(/[^0-9]/g, '')}`}
               className="border-2 border-white text-white px-10 py-4 rounded-xl font-semibold hover:bg-white/10 transition-all inline-flex items-center justify-center gap-2"
             >
               <PhoneIcon className="w-5 h-5" />
-              (469) 485-7313
+              {settings.realtor_phone}
             </a>
           </div>
         </div>

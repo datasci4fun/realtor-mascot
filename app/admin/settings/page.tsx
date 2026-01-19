@@ -141,6 +141,12 @@ export default function SettingsPage() {
           General
         </Link>
         <Link
+          href="/admin/settings/site"
+          className="px-4 py-2 bg-white text-gray-700 rounded-lg text-sm font-medium border border-gray-300 hover:bg-gray-50"
+        >
+          Site Settings
+        </Link>
+        <Link
           href="/admin/settings/templates"
           className="px-4 py-2 bg-white text-gray-700 rounded-lg text-sm font-medium border border-gray-300 hover:bg-gray-50"
         >

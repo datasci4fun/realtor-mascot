@@ -16,7 +16,27 @@
       "Bash(taskkill:*)",
       "Bash(cmd.exe //c \"taskkill /F /IM node.exe\")",
       "Bash(find:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "WebFetch(domain:www.har.com)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next build)",
+      "Bash(git diff:*)",
+      "Bash(gh pr create --base dev --title \"Feature: Complete website with CRM, property pages, and modular architecture\" --body \"$\\(cat <<''EOF''\n## Summary\n\nThis PR completes the realtor website feature branch with:\n\n- **Admin Dashboard & CRM**: Full lead management, user administration, email templates, reminders, reports, tasks, audit logging, and data backup/restore\n- **Database-Driven Property Pages**: Dynamic routing with slug-based URLs, 5 layout variations \\(default, fullwidth, gallery, compact, magazine\\), preview mode with mock data\n- **Photo Gallery Modal**: Full-screen image viewer with keyboard navigation\n- **Modular Architecture Refactor**: Split 5 large files \\(3,600+ lines\\) into organized modules:\n  - `components/icons/` - Centralized SVG icons\n  - `components/illustrations/` - SVG illustrations\n  - `components/home/` - Home page sections\n  - `components/listings/layouts/` - Property page layouts\n  - `components/debug/mascot/` - Debug tool components\n  - `lib/sold-properties/` - Property data module\n  - `data/` - Static content files\n- **Bug Fixes**: React setState warnings, import errors, UUID/TEXT type mismatches\n- **UI Improvements**: Modern styling, performance optimizations\n\n## Commits \\(20\\)\n\n- Refactor large files into modular component structure\n- Fix preview mode layout to not cover header and modal\n- Add photo gallery modal for viewing all property images\n- Add layout variations and placeholder images for property template preview\n- Add preview mode for property template with mock data\n- Enhance property listing template with comprehensive fields and debug overlay\n- Add database-driven property pages with dynamic routing\n- Redesign pages with modern styling, remove animations for performance\n- Fix MascotProvider setState-during-render warning\n- Revert Mascot.tsx to working version\n- Fix Mascot setState-during-render warning properly\n- Fix React setState-during-render warnings and null checks\n- Fix import errors across API routes\n- Fix UUID/TEXT type mismatch in leads.assigned_to joins\n- Add SetReminderButton to lead detail page\n- Update admin sidebar nav with all pages\n- Add reports, reminders, and data backup features\n- Add email templates, lead export/import, audit log, and duplicate detection\n- Add comprehensive admin dashboard with CRM features\n- Add web architecture and research documentation\n\n## Test plan\n\n- [ ] Home page renders all sections correctly\n- [ ] Listings page shows properties with cards\n- [ ] Property detail pages work with all 5 layouts\n- [ ] Photo gallery modal opens and navigates\n- [ ] Admin dashboard accessible and functional\n- [ ] Lead management CRUD operations work\n- [ ] Debug mascot tool functions correctly\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\nEOF\n\\)\")",
+      "Bash(gh pr merge:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Bash(node -e:*)",
+      "Bash(node scripts/seed-test-lead.js:*)",
+      "Bash(npx next lint:*)",
+      "Bash(npx next dev:*)",
+      "Bash(netstat:*)",
+      "Bash(wmic process where \"name=''node.exe''\" get processid,commandline)",
+      "Bash(gh pr create:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(node scripts/seed-compare-test.js:*)",
+      "WebSearch"
     ]
   }
 }

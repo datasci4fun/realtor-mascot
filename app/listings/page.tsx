@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { soldProperties, getSoldStats, formatPrice, formatDate, isSoldOverAsking, generateSlug } from '@/lib/sold-properties'
+import { getSiteSettings } from '@/lib/site-settings'
 
 // SVG Icon Components
 function HomeIcon({ className }: { className?: string }) {
@@ -87,8 +88,9 @@ function PropertyHouseIcon({ beds, className }: { beds: number; className?: stri
   }
 }
 
-export default function ListingsPage() {
+export default async function ListingsPage() {
   const stats = getSoldStats()
+  const settings = await getSiteSettings()
 
   // Sort by close date (newest first)
   const sortedProperties = [...soldProperties].sort(
@@ -284,14 +286,14 @@ export default function ListingsPage() {
               href="/contact"
               className="bg-white text-primary-600 px-10 py-4 rounded-xl font-semibold hover:bg-primary-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 inline-flex items-center justify-center gap-2"
             >
-              Contact Greg
+              Contact {settings.realtor_name.split(' ')[0]}
             </Link>
             <a
-              href="tel:469-485-7313"
+              href={`tel:${settings.realtor_phone.replace(/[^0-9]/g, '')}`}
               className="border-2 border-white text-white px-10 py-4 rounded-xl font-semibold hover:bg-white/10 transition-all inline-flex items-center justify-center gap-2"
             >
               <PhoneIcon className="w-5 h-5" />
-              (469) 485-7313
+              {settings.realtor_phone}
             </a>
           </div>
         </div>

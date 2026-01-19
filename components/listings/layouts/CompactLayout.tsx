@@ -7,6 +7,7 @@ import { ArrowLeftIcon, PhoneIcon, EnvelopeIcon } from '@/components/icons'
 import { PropertyPlaceholder } from '@/components/illustrations'
 import { QuickStats } from '../QuickStats'
 import { PhotoGalleryModal } from '../PhotoGalleryModal'
+import { useSiteSettings, formatPhoneForLink } from '@/components/providers/SiteSettingsProvider'
 
 interface LayoutProps {
   property: Property
@@ -14,10 +15,12 @@ interface LayoutProps {
 }
 
 export function CompactLayout({ property, children }: LayoutProps) {
+  const { settings } = useSiteSettings()
   const [galleryOpen, setGalleryOpen] = useState(false)
   const [galleryIndex, setGalleryIndex] = useState(0)
   const isSold = property.status === 'sold'
   const allImages = property.images.length > 0 ? property.images : (property.imageUrl ? [property.imageUrl] : [])
+  const initials = settings.realtor_name.split(' ').map(n => n[0]).join('')
 
   const openGallery = (index: number = 0) => {
     setGalleryIndex(index)
@@ -90,18 +93,18 @@ export function CompactLayout({ property, children }: LayoutProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-bold">
-                GK
+                {initials}
               </div>
               <div>
-                <p className="font-semibold text-gray-900">Greg Knapp</p>
-                <p className="text-xs text-gray-500">Artistic Real Estate Group</p>
+                <p className="font-semibold text-gray-900">{settings.realtor_name}</p>
+                <p className="text-xs text-gray-500">{settings.brokerage_name}</p>
               </div>
             </div>
             <div className="flex gap-2">
-              <a href="tel:+14694857313" className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+              <a href={`tel:${formatPhoneForLink(settings.realtor_phone)}`} className="p-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
                 <PhoneIcon className="w-5 h-5" />
               </a>
-              <a href="mailto:angela@artisticrealestate.com" className="p-2 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50">
+              <a href={`mailto:${settings.realtor_email}`} className="p-2 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50">
                 <EnvelopeIcon className="w-5 h-5" />
               </a>
             </div>

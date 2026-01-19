@@ -295,6 +295,102 @@ export async function initializeDatabase() {
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
 
+    -- =============================================
+    -- CLIENT PORTAL TABLES
+    -- =============================================
+
+    -- Client sessions (magic link auth)
+    CREATE TABLE IF NOT EXISTS client_sessions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+      token TEXT UNIQUE NOT NULL,
+      token_type TEXT NOT NULL CHECK(token_type IN ('magic_link', 'session')),
+      expires_at TIMESTAMPTZ NOT NULL,
+      used_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Property favorites
+    CREATE TABLE IF NOT EXISTS favorites (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+      property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+      notes TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(lead_id, property_id)
+    );
+
+    -- Viewing requests
+    CREATE TABLE IF NOT EXISTS viewing_requests (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+      property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+      preferred_date DATE,
+      preferred_time TEXT,
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'scheduled', 'completed', 'cancelled')),
+      scheduled_at TIMESTAMPTZ,
+      notes TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Transactions (active deals)
+    CREATE TABLE IF NOT EXISTS transactions (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+      property_id UUID REFERENCES properties(id),
+      transaction_type TEXT NOT NULL CHECK(transaction_type IN ('buying', 'selling')),
+      property_address TEXT NOT NULL,
+      offer_price INTEGER,
+      accepted_price INTEGER,
+      status TEXT DEFAULT 'active' CHECK(status IN ('active', 'pending', 'closed', 'cancelled', 'fell_through')),
+      current_milestone TEXT,
+      contract_date DATE,
+      option_period_ends DATE,
+      inspection_date DATE,
+      closing_date DATE,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Transaction milestones
+    CREATE TABLE IF NOT EXISTS transaction_milestones (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      transaction_id UUID NOT NULL REFERENCES transactions(id) ON DELETE CASCADE,
+      milestone_type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      due_date DATE,
+      completed_at TIMESTAMPTZ,
+      status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'in_progress', 'completed', 'skipped')),
+      notes TEXT,
+      order_index INTEGER NOT NULL
+    );
+
+    -- Documents
+    CREATE TABLE IF NOT EXISTS documents (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+      transaction_id UUID REFERENCES transactions(id),
+      name TEXT NOT NULL,
+      file_name TEXT NOT NULL,
+      file_type TEXT NOT NULL,
+      file_size INTEGER,
+      file_path TEXT NOT NULL,
+      category TEXT NOT NULL CHECK(category IN ('contract', 'disclosure', 'inspection', 'appraisal', 'title', 'insurance', 'financing', 'closing', 'other')),
+      uploaded_by TEXT NOT NULL CHECK(uploaded_by IN ('client', 'agent')),
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
+    -- Messages
+    CREATE TABLE IF NOT EXISTS messages (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+      sender_type TEXT NOT NULL CHECK(sender_type IN ('client', 'agent', 'mascot')),
+      content TEXT NOT NULL,
+      attachments JSONB DEFAULT '[]',
+      read_at TIMESTAMPTZ,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+
     -- Create indexes for common queries
     CREATE INDEX IF NOT EXISTS idx_leads_email ON leads(email);
     CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
@@ -313,6 +409,22 @@ export async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
     CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
     CREATE INDEX IF NOT EXISTS idx_properties_close_date ON properties(close_date DESC);
+
+    -- Portal indexes
+    CREATE INDEX IF NOT EXISTS idx_client_sessions_lead ON client_sessions(lead_id);
+    CREATE INDEX IF NOT EXISTS idx_client_sessions_token ON client_sessions(token);
+    CREATE INDEX IF NOT EXISTS idx_client_sessions_expires ON client_sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_favorites_lead ON favorites(lead_id);
+    CREATE INDEX IF NOT EXISTS idx_favorites_property ON favorites(property_id);
+    CREATE INDEX IF NOT EXISTS idx_viewing_requests_lead ON viewing_requests(lead_id);
+    CREATE INDEX IF NOT EXISTS idx_viewing_requests_status ON viewing_requests(status);
+    CREATE INDEX IF NOT EXISTS idx_transactions_lead ON transactions(lead_id);
+    CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status);
+    CREATE INDEX IF NOT EXISTS idx_transaction_milestones_transaction ON transaction_milestones(transaction_id);
+    CREATE INDEX IF NOT EXISTS idx_documents_lead ON documents(lead_id);
+    CREATE INDEX IF NOT EXISTS idx_documents_transaction ON documents(transaction_id);
+    CREATE INDEX IF NOT EXISTS idx_messages_lead ON messages(lead_id);
+    CREATE INDEX IF NOT EXISTS idx_messages_read ON messages(lead_id) WHERE read_at IS NULL;
   `)
 
   console.log('Database schema initialized')
