@@ -30,9 +30,6 @@ Dockerfile
 docker-compose*.yml
 .dockerignore
 
-# Data directory (local dev only)
-data/
-
 # Docs
 *.md
 !README.md
